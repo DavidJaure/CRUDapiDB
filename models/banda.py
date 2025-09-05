@@ -3,15 +3,19 @@ from sqlalchemy.orm import relationship, declarative_base
 
 Base = declarative_base()
 
-class Band(Base):
-    __tablename__ = 'bands'
+class Biciusuario(Base):
+    __tablename__ = 'biciusuario'
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255), nullable=False)
-    albums = relationship('Album', back_populates='band', cascade='all, delete-orphan')
+    nombre_biciusuario = Column(String(255), nullable=False)
+    registros = relationship('RegistroBiciusuario', back_populates='biciusuario', cascade='all, delete-orphan')
 
-class Album(Base):
-    __tablename__ = 'albums'
+class RegistroBiciusuario(Base):
+    __tablename__ = 'registro_biciusuarios'
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String(255), nullable=False)
-    band_id = Column(Integer, ForeignKey('bands.id'))
-    band = relationship('Band', back_populates='albums')
+    nombre_biciusuario = Column(String(255), nullable=False)
+    biciusuario_id = Column(Integer, ForeignKey('biciusuario.id'))
+    serial = Column(String(50))
+
+
+    biciusuario = relationship('Biciusuario', back_populates='registros')
+
