@@ -92,7 +92,7 @@ def update_biciusuario(biciusuario_id, data):
 
     user.nombre_biciusuario = data.get('nombre_biciusuario', user.nombre_biciusuario)
 
-    # Actualizar registros: elimina los antiguos y agrega los nuevos
+    # Actualizar registros
     if 'registros' in data:
         user.registros.clear()
         for reg_data in data['registros']:
@@ -103,7 +103,7 @@ def update_biciusuario(biciusuario_id, data):
             )
             user.registros.append(registro)
 
-    # Actualizar bicicletas: elimina las antiguas y agrega las nuevas
+    # Actualizar bicicletas
     if 'bicicletas' in data:
         user.bicicletas.clear()
         for bici_data in data['bicicletas']:
