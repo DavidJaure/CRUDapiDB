@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from sqlalchemy.orm import Session
-from database import get_db  # Aquí tu función para obtener sesión de DB
-from biciusuario_service import (
+from config.database import get_db  # Aquí tu función para obtener sesión de DB
+from services.biciusuarios_services import (
     get_all_biciusuarios, get_biciusuario_by_id, create_biciusuario,
     update_biciusuario, delete_biciusuario
 )

@@ -1,5 +1,5 @@
 from config.database import SessionLocal
-from models.biciusuario import Biciusuario, RegistroBiciusuario, Bicicleta
+from models.Biciusuario import Biciusuario, RegistroBiciusuario, Bicicleta
 from sqlalchemy.orm import joinedload
 
 def get_all_biciusuarios():
