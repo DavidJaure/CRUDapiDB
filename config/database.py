@@ -1,22 +1,44 @@
+
+
 import os
-from dotenv import load_dotenv
+import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import OperationalError
+from models.Biciusuario import Base
+from dotenv import load_dotenv
+logging.basicConfig(level=logging.INFO)
 
+# Cargar variables de entorno desde .env
 load_dotenv()
 
-MYSQL_USER = os.getenv('MYSQL_USER')
-MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
-MYSQL_HOST = os.getenv('MYSQL_HOST')
-MYSQL_DB = os.getenv('MYSQL_DB')
+MYSQL_URI = os.getenv('MYSQL_URI')
+SQLITE_URI = 'sqlite:///biciusuarios_local.db'
 
+def get_engine():
+    """
+    Intenta crear una conexión con MySQL. Si falla, usa SQLite local.
+    """
+    if MYSQL_URI:
+        try:
+            engine = create_engine(MYSQL_URI, echo=True)
+            # Probar conexión
+            conn = engine.connect()
+            conn.close()
+            logging.info('Conexión a MySQL exitosa.')
+            return engine
+        except OperationalError:
+            logging.warning('No se pudo conectar a MySQL. Usando SQLite local.')
+    # Fallback a SQLite
+    engine = create_engine(SQLITE_URI, echo=True)
+    return engine
 
-# Usar PyMySQL como driver y soportar variables de entorno
-if MYSQL_USER and MYSQL_PASSWORD and MYSQL_HOST and MYSQL_DB:
-	DATABASE_URL = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DB}"
-else:
-	# fallback a conexión directa si no hay variables de entorno
-	DATABASE_URL = os.getenv('DATABASE_URI')
+engine = get_engine()
+Session = sessionmaker(bind=engine)
+Base.metadata.create_all(engine)
 
-engine = create_engine(DATABASE_URL, echo=True)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+def get_db_session():
+    """
+    Retorna una nueva sesión de base de datos para ser utilizada en los servicios o controladores.
+    """
+    return Session()
