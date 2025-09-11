@@ -35,6 +35,7 @@ def get_engine():
 
 engine = get_engine()
 Session = sessionmaker(bind=engine)
+SessionLocal = Session  # Alias para compatibilidad con imports existentes
 Base.metadata.create_all(engine)
 
 def get_db_session():
@@ -42,3 +43,11 @@ def get_db_session():
     Retorna una nueva sesión de base de datos para ser utilizada en los servicios o controladores.
     """
     return Session()
+
+# Alias para compatibilidad con imports existentes
+def get_db():
+    """
+    Alias de get_db_session para compatibilidad.
+    """
+    return get_db_session()
+
