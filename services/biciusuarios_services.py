@@ -90,31 +90,40 @@ def update_biciusuario(biciusuario_id, data):
         session.close()
         return None
 
+    # Actualizar nombre
     user.nombre_biciusuario = data.get('nombre_biciusuario', user.nombre_biciusuario)
 
     # Actualizar registros
     if 'registros' in data:
-        user.registros.clear()
         for reg_data in data['registros']:
-            registro = RegistroBiciusuario(
-                nombre_biciusuario=user.nombre_biciusuario,
-                serial=reg_data['serial'],
-                biciusuario_id=user.id
-            )
-            user.registros.append(registro)
+            registro = next((r for r in user.registros if r.serial == reg_data['serial']), None)
+            if registro:
+                registro.nombre_biciusuario = user.nombre_biciusuario
+            else:
+                new_registro = RegistroBiciusuario(
+                    nombre_biciusuario=user.nombre_biciusuario,
+                    serial=reg_data['serial'],
+                    biciusuario_id=user.id
+                )
+                session.add(new_registro)
 
     # Actualizar bicicletas
     if 'bicicletas' in data:
-        user.bicicletas.clear()
         for bici_data in data['bicicletas']:
-            bicicleta = Bicicleta(
-                marca=bici_data['marca'],
-                modelo=bici_data['modelo'],
-                color=bici_data['color'],
-                serial=bici_data['serial'],
-                biciusuario_id=user.id
-            )
-            user.bicicletas.append(bicicleta)
+            bicicleta = next((b for b in user.bicicletas if b.serial == bici_data['serial']), None)
+            if bicicleta:
+                bicicleta.marca = bici_data.get('marca', bicicleta.marca)
+                bicicleta.modelo = bici_data.get('modelo', bicicleta.modelo)
+                bicicleta.color = bici_data.get('color', bicicleta.color)
+            else:
+                new_bici = Bicicleta(
+                    marca=bici_data['marca'],
+                    modelo=bici_data['modelo'],
+                    color=bici_data['color'],
+                    serial=bici_data['serial'],
+                    biciusuario_id=user.id
+                )
+                session.add(new_bici)
 
     session.commit()
     result = get_biciusuario_by_id(user.id)
