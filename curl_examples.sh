@@ -7,7 +7,7 @@ curl -i http://localhost:5000/biciusuarios/1
 #Mostrar biciusuario por id que no existe
 curl -i http://localhost:5000/biciusuarios/99
 
-#Crear, actualizar y eliminar biciusuarios
+#Crear biciusuario con registros y bicicletas
 curl -i -X POST http://localhost:5000/biciusuarios \
   -H "Content-Type: application/json" \
   -d '{
