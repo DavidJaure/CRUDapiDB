@@ -25,11 +25,11 @@ El uso de un ORM como SQLAlchemy permite desacoplar la lógica de negocio de la 
 - `requirements.txt`: Lista de dependencias necesarias para ejecutar el proyecto.
 
 ## Tecnologias utilizadas
-Python 3.12+
-Flask (framework web)
-SQLAlchemy (ORM para bases de datos relacionales)
-SQLite / MySQL (soporte de motores de BD)
-dotenv para configuración de entornos
+- Python 3.12+
+- Flask (framework web)
+- SQLAlchemy (ORM para bases de datos relacionales)
+- SQLite / MySQL (soporte de motores de BD)
+- dotenv para configuración de entornos
 
 ## Cómo crear un entorno virtual en Python
 El uso de un entorno virtual es fundamental para aislar las dependencias del proyecto y evitar conflictos con otras aplicaciones o proyectos en tu sistema. Un entorno virtual te permite instalar paquetes específicos para este proyecto sin afectar el entorno global de Python.
