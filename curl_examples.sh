@@ -11,7 +11,7 @@ curl -i http://localhost:5000/biciusuarios/99
 curl -i -X POST http://localhost:5000/biciusuarios \
   -H "Content-Type: application/json" \
   -d '{
-    "nombre_biciusuario": "Carlos Pérez",
+    "nombre_biciusuario": "Carlos Perez",
     "registros": [{"serial": "REG123"}],
     "bicicletas": [
       {"marca": "Trek", "modelo": "Domane", "color": "Rojo", "serial": "TREK-001"},
@@ -28,7 +28,7 @@ curl -i -X POST http://localhost:5000/biciusuarios \
 curl -i -X PUT http://localhost:5000/biciusuarios/2 \
   -H "Content-Type: application/json" \
   -d '{
-    "nombre_biciusuario": "Carlos Gómez",
+    "nombre_biciusuario": "Carlos Gomez",
     "registros": [{"serial": "REG999"}],
     "bicicletas": [
       {"marca": "Specialized", "modelo": "Sirrus", "color": "Negro", "serial": "SPEC-2025"}
