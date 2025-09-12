@@ -3,11 +3,7 @@ Este proyecto es una base para la gestión de biciusuarios, sus registros y bici
 Utiliza Python, Flask como framework web y SQLAlchemy como ORM para la interacción con bases de datos relacionales.
 
 ## Descripción general 📖
-El sistema permite: 
-✅Registrar nuevos biciusuarios.
-✅Consultar información detallada de cada usuario.
-✅Actualizar sus datos, incluyendo registros y bicicletas asociadas.
-✅Eliminar usuarios junto con toda la información relacionada.
+El sistema permite:Registrar nuevos biciusuarios,consultar información detallada de cada usuario, actualizar sus datos(incluyendo registros y bicicletas asociadas) y eliminar usuarios junto con toda la información relacionada.
 
 La arquitectura por capas facilita la separación de responsabilidades, mejorando la mantenibilidad, escalabilidad y flexibilidad del código.
 El uso de un ORM como SQLAlchemy permite desacoplar la lógica de negocio de la base de datos, facilitando la portabilidad y seguridad.
