@@ -1,39 +1,56 @@
-# 1. Obtener todos los grupos
-curl -i http://localhost:5000/bands
+#Mostrar todos los biciusuarios
+curl -i http://localhost:5000/biciusuarios
 
-# 2. Obtener un grupo por ID (ejemplo: 1)
-curl -i http://localhost:5000/bands/1
+#Mostrar biciusuario por id
+curl -i http://localhost:5000/biciusuarios/1
 
-# 3. Obtener un grupo inexistente (ejemplo: 99)
-curl -i http://localhost:5000/bands/99
+#Mostrar biciusuario por id que no existe
+curl -i http://localhost:5000/biciusuarios/99
 
-# 4. Crear un nuevo grupo
-curl -i -X POST http://localhost:5000/bands \
+#Crear, actualizar y eliminar biciusuarios
+curl -i -X POST http://localhost:5000/biciusuarios \
   -H "Content-Type: application/json" \
-  -d '{"name": "The Beatles", "albums": ["Abbey Road", "Sgt. Peppers Lonely Hearts Club Band"]}'
+  -d '{
+    "nombre_biciusuario": "Carlos Pérez",
+    "registros": [{"serial": "REG123"}],
+    "bicicletas": [
+      {"marca": "Trek", "modelo": "Domane", "color": "Rojo", "serial": "TREK-001"},
+      {"marca": "Giant", "modelo": "Escape", "color": "Azul", "serial": "GIANT-777"}
+    ]
+  }'
 
-# 5. Crear un grupo con datos incompletos
-curl -i -X POST http://localhost:5000/bands \
+#Crear biciusuario con solo nombre
+curl -i -X POST http://localhost:5000/biciusuarios \
   -H "Content-Type: application/json" \
-  -d '{"name": "Nirvana"}'
+  -d '{"nombre_biciusuario": "Natalia"}'
 
-# 6. Actualizar un grupo existente (ejemplo: 2)
-curl -i -X PUT http://localhost:5000/bands/2 \
+#Actualizar biciusuario existente 
+curl -i -X PUT http://localhost:5000/biciusuarios/2 \
   -H "Content-Type: application/json" \
-  -d '{"name": "Pink Floyd", "albums": ["Animals", "The Wall"]}'
+  -d '{
+    "nombre_biciusuario": "Carlos Gómez",
+    "registros": [{"serial": "REG999"}],
+    "bicicletas": [
+      {"marca": "Specialized", "modelo": "Sirrus", "color": "Negro", "serial": "SPEC-2025"}
+    ]
+  }'
 
-# 7. Actualizar un grupo inexistente (ejemplo: 99)
-curl -i -X PUT http://localhost:5000/bands/99 \
+#Actualizar biciusuario que no existe
+curl -i -X PUT http://localhost:5000/biciusuarios/99 \
   -H "Content-Type: application/json" \
-  -d '{"name": "Unknown", "albums": ["None"]}'
+  -d '{
+    "nombre_biciusuario": "Fantasma",
+    "registros": [],
+    "bicicletas": []
+  }'
 
-# 8. Eliminar un grupo existente (ejemplo: 3)
-curl -i -X DELETE http://localhost:5000/bands/3
+#Eliminar biciusuario por id
+curl -i -X DELETE http://localhost:5000/biciusuarios/3
 
-# 9. Eliminar un grupo inexistente (ejemplo: 99)
-curl -i -X DELETE http://localhost:5000/bands/99
+#Eliminar biciusuario que no existe
+curl -i -X DELETE http://localhost:5000/biciusuarios/99
 
-# 10. Crear un grupo con un arreglo vacío de álbumes
-curl -i -X POST http://localhost:5000/bands \
+#Crear biciusuario con listas vacías
+curl -i -X POST http://localhost:5000/biciusuarios \
   -H "Content-Type: application/json" \
-  -d '{"name": "AC/DC", "albums": []}'
+  -d '{"nombre_biciusuario": "Andrea", "registros": [], "bicicletas": []}'
