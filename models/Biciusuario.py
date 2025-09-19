@@ -29,3 +29,12 @@ class Bicicleta(Base):
     serial = Column(String(50), unique=True)
 
     propietario = relationship('Biciusuario', back_populates='bicicletas')
+
+
+
+class user():
+    __tablename__ = 'users'
+    id = Column(Integer,Primary_key=True, inter=True)
+    username = Column(String(50), unique=True, index=True, nullable=False)
+    password = Column(String(255), nullable=False)
+
