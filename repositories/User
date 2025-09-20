@@ -1,0 +1,47 @@
+# user_repository.py
+
+from models.Biciusuario import User  # Asegúrate de que esta ruta sea correcta
+from sqlalchemy.orm import Session
+
+class UserRepository:
+    """
+    Repositorio para la gestión de usuarios en la base de datos.
+    """
+
+    def __init__(self, db_session: Session):
+        self.db = db_session
+
+    def get_all_users(self):
+        return self.db.query(User).all()
+
+    def get_user_by_id(self, user_id: int):
+        return self.db.query(User).filter(User.id == user_id).first()
+
+    def create_user(self, username: str, password: str, nombre_biciusuario: str):
+        new_user = User(username=username, password=password, nombre_biciusuario=nombre_biciusuario)
+        self.db.add(new_user)
+        self.db.commit()
+        self.db.refresh(new_user)
+        return new_user
+
+    def update_user(self, user_id: int, username: str = None, password: str = None, nombre_biciusuario: str = None):
+        user = self.get_user_by_id(user_id)
+        if user:
+            if username:
+                user.username = username
+            if password:
+                user.password = password
+            if nombre_biciusuario:
+                user.nombre_biciusuario = nombre_biciusuario
+            self.db.commit()
+            self.db.refresh(user)
+            return user
+        return None
+
+    def delete_user(self, user_id: int):
+        user = self.get_user_by_id(user_id)
+        if user:
+            self.db.delete(user)
+            self.db.commit()
+            return user
+        return None
