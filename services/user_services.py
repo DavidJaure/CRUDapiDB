@@ -20,7 +20,7 @@ class UsersService:
     """
     def __init__(self, db_session: Session):
         """Inicializa el servicio con una sesión de base de datos e instancia el repositorio."""
-        self.users_repository = UserRepository(db_session)
+        self.users_repository = UsersRepository(db_session)
         logger.info("Servicio de Usuarios (Seguridad) inicializado")
 
     def authenticate_user(self, username: str, password: str):
