@@ -30,16 +30,19 @@ curl -X POST http://localhost:5000/auth/login -H "Content-Type: application/json
 # Esto asume que el ID de Juan Pérez es 1
 ID_JUAN=1 
 
-curl -X PUT http://localhost:5000/biciusuarios/${ID_JUAN} -H "Content-Type: application/json" -H "Authorization: Bearer <TOKEN_JUAN>" -d '{
-    "nombre_biciusuario": "JuanPerezActualizado",
-    "bicicletas": [
-        {"marca": "Trek", "modelo": "Domane", "color": "Rojo", "serial": "TRK12345"},
-        {"marca": "Specialized", "modelo": "Allez", "color": "Negro", "serial": "SPZ67890"}
-    ],
-    "registros": [
-        {"serial": "TRK12345"}
-    ]
-}'
+curl -X PUT http://localhost:5000/biciusuarios/3 \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer TOKEN" \
+    -d '{                                                                                      
+        "nombre_biciusuario": "JuanPerezActualizado",
+        "bicicletas": [                                                                        
+            {"marca": "Trek", "modelo": "Domane", "color": "Rojo", "serial": "TRK12345"},      
+            {"marca": "Specialized", "modelo": "Allez", "color": "Negro", "serial": "SPZ67890"}
+        ],                        
+        "registros": [            
+            {"serial": "TRK12345"}
+        ]
+    }
 
 # -----------------------------
 # 4. Consultar Rutas Protegidas (Requiere Token)
@@ -60,25 +63,13 @@ curl -X GET http://localhost:5000/biciusuarios/${ID_JUAN}
 
 
 
-curl -X PUT http://localhost:5000/biciusuarios/1 \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer <TU_TOKEN_MÁS_RECIENTE>" \
-    -d '{
-        "nombre_biciusuario": "JuanPerezActualizado",
-        "bicicletas": [
-            {"marca": "Trek", "modelo": "Domane", "color": "Rojo", "serial": "TRK12345"},
-            {"marca": "Specialized", "modelo": "Allez", "color": "Negro", "serial": "SPZ67890"}
-        ],
-        "registros": [
-            {"serial": "TRK12345"}
-        ]
-    }'
 
 
 
 
 
 
+____________________________________________________________________________________
 Despues de genrar el token:
 $ curl -X GET http://localhost:5000/biciusuarios/1 -H "Authorization: Bearer TOKEN"
 
@@ -105,3 +96,5 @@ curl -X PUT http://localhost:5000/biciusuarios/3 \
 
 
     BORRAR USUARIO
+    curl -X DELETE http://localhost:5000/biciusuarios/1 \
+    -H "Authorization: Bearer <TU_TOKEN_MÁS_RECIENTE>"
