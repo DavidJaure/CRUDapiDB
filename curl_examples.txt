@@ -1,0 +1,56 @@
+# -----------------------------
+# 1. Registro de Biciusuarios (Ruta: /auth/register)
+# -----------------------------
+
+# Usuario 1: Juan Pérez (Perfil Principal)
+curl -X POST http://localhost:5000/auth/register -H "Content-Type: application/json" -d '{"username": "juanperez", "password": "pass123", "nombre_biciusuario": "JuanPerezCiclista"}'
+
+# Usuario 2: María López
+curl -X POST http://localhost:5000/auth/register -H "Content-Type: application/json" -d '{"username": "marialopez", "password": "pass123", "nombre_biciusuario": "MariaBiciLoca"}'
+
+# Usuario 3: Pedro Gómez
+curl -X POST http://localhost:5000/auth/register -H "Content-Type: application/json" -d '{"username": "pedrogomez", "password": "pass123", "nombre_biciusuario": "ElBichoBiker"}'
+
+# -----------------------------
+# 2. Obtener Tokens JWT (Ruta: /auth/login)
+# -----------------------------
+echo "Token de Juan Pérez (TOKEN_JUAN):"
+curl -X POST http://localhost:5000/auth/login -H "Content-Type: application/json" -d '{"username": "juanperez", "password": "pass123"}'
+echo "\nToken de María López:"
+curl -X POST http://localhost:5000/auth/login -H "Content-Type: application/json" -d '{"username": "marialopez", "password": "pass123"}'
+echo "\nToken de Pedro Gómez:"
+curl -X POST http://localhost:5000/auth/login -H "Content-Type: application/json" -d '{"username": "pedrogomez", "password": "pass123"}'
+
+# -----------------------------
+# 3. Crear Perfil Detallado (Ruta: /biciusuarios/<id>)
+# (Reemplaza <TOKEN_JUAN> y <ID_JUAN> - usualmente 1)
+# -----------------------------
+
+# Ejemplo de datos para actualizar/crear la bicicleta y el registro en el perfil de Juan
+# Esto asume que el ID de Juan Pérez es 1
+ID_JUAN=1 
+
+curl -X PUT http://localhost:5000/biciusuarios/${ID_JUAN} -H "Content-Type: application/json" -H "Authorization: Bearer <TOKEN_JUAN>" -d '{
+    "nombre_biciusuario": "JuanPerezActualizado",
+    "bicicletas": [
+        {"marca": "Trek", "modelo": "Domane", "color": "Rojo", "serial": "TRK12345"},
+        {"marca": "Specialized", "modelo": "Allez", "color": "Negro", "serial": "SPZ67890"}
+    ],
+    "registros": [
+        {"serial": "TRK12345"}
+    ]
+}'
+
+# -----------------------------
+# 4. Consultar Rutas Protegidas (Requiere Token)
+# (Reemplaza <TOKEN_JUAN> y <ID_JUAN>)
+# -----------------------------
+
+echo "Consulta a la lista de todos los usuarios (Ruta /auth/users):"
+curl -X GET http://localhost:5000/auth/users -H "Authorization: Bearer <TOKEN_JUAN>"
+
+echo "\nConsulta del perfil de Biciusuario de Juan (Ruta /biciusuarios/<id>):"
+curl -X GET http://localhost:5000/biciusuarios/${ID_JUAN} -H "Authorization: Bearer <TOKEN_JUAN>"
+
+echo "\nIntento de consulta sin token (Debe fallar con 401 Unauthorized):"
+curl -X GET http://localhost:5000/biciusuarios/${ID_JUAN}
