@@ -1,83 +1,68 @@
-# Proyecto de gestión de Biciusuarios.
-Este proyecto es una base para la gestión de biciusuarios, sus registros y bicicletas, implementado siguiendo el patrón arquitectónico por capas.
-Utiliza Python, Flask como framework web y SQLAlchemy como ORM para la interacción con bases de datos relacionales.
+# Proyecto de Gestión de Registros de Biciusuarios
 
-## Descripción general 📖
-El sistema permite:Registrar nuevos biciusuarios,consultar información detallada de cada usuario, actualizar sus datos(incluyendo registros y bicicletas asociadas) y eliminar usuarios junto con toda la información relacionada.
+Este proyecto es una API RESTful diseñada para la administración integral de perfiles de biciusuarios, sus registros de uso y la gestión de bicicletas asociadas. Está implementado siguiendo el riguroso **patrón arquitectónico por capas** (Controller, Service, Repository) y utiliza Python, Flask, y SQLAlchemy.
 
-La arquitectura por capas facilita la separación de responsabilidades, mejorando la mantenibilidad, escalabilidad y flexibilidad del código.
-El uso de un ORM como SQLAlchemy permite desacoplar la lógica de negocio de la base de datos, facilitando la portabilidad y seguridad.
+## Descripción General
+El sistema centraliza la información de los usuarios que utilizan bicicletas, proporcionando una plataforma segura para la gestión de datos. La arquitectura por capas garantiza la **separación de responsabilidades**, lo que facilita la mantenibilidad, el *testing* y la futura escalabilidad.
 
-### Caracteristicas principales
-- API RESTful para la gestión de biciusuarios, registros y bicicletas.
-- Modelos bien definidos con relaciones entre entidades (Biciusuario, RegistroBiciusuario, Bicicleta).
-- Servicios dedicados para la lógica de negocio (CRUD completo).
-- Controladores que exponen los endpoints de la API.
-- Cascada en eliminaciones → al borrar un usuario, se eliminan automáticamente sus registros y bicicletas.
-- Uso de joinedload en consultas para optimizar la carga de relaciones.
+### Características Clave:
+- **Autenticación Segura (JWT):** Todas las rutas de gestión de perfiles están protegidas y requieren un **JSON Web Token (JWT)** válido.
+- **Seguridad de Contraseñas:** Uso de *hashing* con `werkzeug.security` para almacenar contraseñas de forma segura (campo `password_hash`).
+- **Arquitectura por Capas:** Clara distinción entre la capa de acceso a datos (Repository), la lógica de negocio (Service) y la gestión de peticiones HTTP (Controller).
+- **Entidades Relacionadas:** Manejo de relaciones uno-a-muchos (`User` -> `RegistroBiciusuario` y `User` -> `Bicicleta`).
 
-## Estructura del proyecto📂 
-- `models/`: Definición de los modelos de datos (`Biciusuario`, `RegistroBiciusuario`, `Bicicleta`) y sus relaciones.
-- `services/`: Implementación de la lógica de negocio y acceso a datos usando SQLAlchemy (CRUD de biciusuarios, registros y bicicletas).
-- `controllers/`: Definición de los endpoints y controladores de la API REST (usa Flask Blueprints para organizar rutas).
-- `config/`: Configuración de la base de datos (`database.py`) con soporte para MySQL y fallback a SQLite.
-- `app.py`: Punto de entrada de la aplicación Flask. Registra los blueprints y crea las tablas si no existen.
-- `requirements.txt`: Lista de dependencias necesarias para ejecutar el proyecto.
+## Estructura del Proyecto
+- `models/`: Definición de los modelos de datos (User, RegistroBiciusuario, Bicicleta).
+- `repositories/`: Implementación de la capa de acceso a datos (`UsersRepository`, `BiciusuariosRepository`).
+- `services/`: Implementación de la lógica de negocio (`UsersService` para autenticación y `BiciusuariosService` para perfiles).
+- `controllers/`: (Por implementar) Lógica de los endpoints de la API (`users_controllers.py` para login/registro y `biciusuarios_bd.py` para el CRUD principal).
+- `requirements.txt`: Lista de dependencias necesarias.
 
-## Tecnologias utilizadas
-- Python 3.12+
-- Flask (framework web)
-- SQLAlchemy (ORM para bases de datos relacionales)
-- SQLite / MySQL (soporte de motores de BD)
-- dotenv para configuración de entornos
+## Requisitos y Configuración Inicial
 
-## Cómo crear un entorno virtual en Python
-El uso de un entorno virtual es fundamental para aislar las dependencias del proyecto y evitar conflictos con otras aplicaciones o proyectos en tu sistema. Un entorno virtual te permite instalar paquetes específicos para este proyecto sin afectar el entorno global de Python.
+El uso de un entorno virtual (`venv`) es obligatorio para aislar las dependencias del proyecto.
 
-### Pasos para crear y activar un entorno virtual:
+### Pasos de Configuración:
 
-1. **Instala virtualenv si no lo tienes:**
-   ```bash
-   pip install virtualenv
-   ```
+1.  **Instalar virtualenv (si no lo tienes):**
+    ```bash
+    pip install virtualenv
+    ```
 
-2. **Crea el entorno virtual:**
-   ```bash
-   python -m venv venv
-   ```
-   Esto creará una carpeta llamada `venv` en el directorio del proyecto.
+2.  **Crear y Activar el Entorno Virtual:**
+    ```bash
+    python -m venv venv
+    # En Linux/Mac:
+    source venv/bin/activate
+    # En Windows:
+    venv\Scripts\activate
+    ```
 
-3. **Activa el entorno virtual:**
-   - En Linux/Mac:
-     ```bash
-     source venv/bin/activate
-     ```
-   - En Windows:
-     ```cmd
-     venv\Scripts\activate
-     ```
+3.  **Instalar Dependencias del Proyecto:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-4. **Instala las dependencias del proyecto:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+### Dependencias Críticas (Asegúrate de que estén en `requirements.txt`):
+- `Flask`
+- `Flask-JWT-Extended`
+- `SQLAlchemy`
+- `psycopg2-binary` (o el driver de tu base de datos)
+- `werkzeug` (para `generate_password_hash`)
 
-### Importancia de usar un entorno virtual
-- **Aislamiento:** Evita conflictos entre dependencias de diferentes proyectos.
-- **Reproducibilidad:** Permite que otros desarrolladores instalen exactamente las mismas versiones de las librerías.
-- **Facilidad de despliegue:** Simplifica la migración y despliegue en diferentes entornos (desarrollo, pruebas, producción).
-- **Limpieza:** Mantiene tu instalación global de Python libre de paquetes innecesarios.
+## Rutas Principales de la API (Ejemplos)
 
-### Ejecuta la aplicación con:
-python app.py
-
-### La API estará disponible en:
-http://localhost:5000
-
-
+| Ruta | Método | Descripción | Requisito |
+| :--- | :--- | :--- | :--- |
+| `/auth/register` | `POST` | Crea un nuevo biciusuario y hashea la contraseña. | Ninguno |
+| `/auth/login` | `POST` | Autentica al usuario y retorna un token JWT. | Ninguno |
+| `/biciusuarios` | `GET` | Lista todos los perfiles de biciusuario. | **JWT** |
+| `/biciusuarios/<id>` | `GET` | Obtiene un perfil específico con sus bicicletas y registros. | **JWT** |
+| `/biciusuarios/<id>` | `PUT`/`PATCH`| Actualiza datos del perfil, bicicletas y registros. | **JWT** |
+| `/biciusuarios/<id>` | `DELETE` | Elimina un perfil completo. | **JWT** |
 
 ## Contribuciones
-Si deseas contribuir, por favor sigue las buenas prácticas de documentación y arquitectura ya establecidas en el proyecto. ¡Toda mejora es bienvenida!
+Si deseas contribuir o proponer mejoras, por favor mantente alineado con la arquitectura por capas (Controller -> Service -> Repository) y las buenas prácticas de seguridad establecidas.
 
 ## Licencia
 Este proyecto es de uso libre para fines educativos y de aprendizaje.
