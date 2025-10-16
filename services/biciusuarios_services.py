@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 # Importaciones de Modelos (Asegúrate de que estas rutas sean correctas)
 from models.users_model import User 
 from models.users_model import RegistroBiciusuario, Bicicleta 
-from repositories.users_repository import UserRepository 
+from repositories.users_repository import UsersRepository 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

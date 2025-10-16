@@ -1,52 +1,84 @@
-import sys
-import os
-from flask import Flask
+import logging
+from flask import Flask, jsonify
 from flask_jwt_extended import JWTManager
 
-# Ajustar el path de búsqueda para importar módulos de carpetas superiores
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# 1. Configuración de la Base de Datos
+from config.database import create_tables, engine, SessionLocal
+# Importamos la Base para que SQLAlchemy la conozca y cree las tablas
+from models.users_model import Base 
 
-# 1. Importaciones de Configuración y Modelos
-from config.database import engine
-from config.jwt import * # Importa todas las constantes de JWT
-from models.users_model import Base # Se asume que Base está definida aquí o en users_model
-
-# 2. Importaciones de Controladores (Blueprints)
+# 2. Configuración de JWT (Importa todas las constantes)
+from config.jwt import * # 3. Importación de Controladores (Blueprints)
 from controllers.biciusuario_bd import biciusuario_bp 
-from controllers.users_controllers import users_bp # Controlador para /auth/login y /auth/register
-# En src/app.py, después de inicializar JWTManager
-from controllers.users_controllers import register_jwt_error_handlers
-register_jwt_error_handlers(app)
+from controllers.users_controllers import users_bp 
 
-def create_tables():
-    """Crea todas las tablas definidas en los modelos de SQLAlchemy si no existen."""
-    print("Verificando y creando tablas de base de datos si es necesario...")
-    Base.metadata.create_all(bind=engine)
-    print("Tablas listas.")
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# 3. Inicialización de la Aplicación
-app = Flask(__name__)
+# --- Funciones de Configuración ---
 
-# --- CONFIGURACIÓN DE SEGURIDAD (JWT) ---
-# Se asignan las configuraciones de JWT importadas desde config/jwt.py
-app.config['JWT_SECRET_KEY'] = JWT_SECRET_KEY
-app.config['JWT_TOKEN_LOCATION'] = JWT_TOKEN_LOCATION
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = JWT_ACCESS_TOKEN_EXPIRES
-app.config['JWT_HEADER_NAME'] = JWT_HEADER_NAME
-app.config['JWT_HEADER_TYPE'] = JWT_HEADER_TYPE
+def configure_jwt(app):
+    """Configura Flask-JWT-Extended con la aplicación."""
+    app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
+    app.config["JWT_TOKEN_LOCATION"] = JWT_TOKEN_LOCATION
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = JWT_ACCESS_TOKEN_EXPIRES
+    app.config["JWT_HEADER_NAME"] = JWT_HEADER_NAME
+    app.config["JWT_HEADER_TYPE"] = JWT_HEADER_TYPE
+    JWTManager(app)
 
-# Inicializa JWT
-jwt = JWTManager(app)
-# ----------------------------------------
+def register_jwt_error_handlers(app):
+    """Define manejadores de errores de JWT personalizados."""
+    
+    @app.errorhandler(401)
+    def unauthorized(error):
+        # Maneja cualquier 401 que pueda lanzar JWT, asegurando una respuesta JSON
+        return jsonify({'msg': 'Token faltante o inválido'}), 401
+    
+    @app.errorhandler(403)
+    def forbidden(error):
+        return jsonify({'msg': 'Acceso prohibido, permisos insuficientes'}), 403
 
-# 4. Registro de Blueprints
-# Asegúrate de registrar AMBOS controladores: el de datos y el de autenticación.
-app.register_blueprint(biciusuario_bp, url_prefix='/biciusuarios')
-app.register_blueprint(users_bp, url_prefix='/auth') 
+# --- Creación de la Aplicación ---
 
+def create_app():
+    """Crea y configura la instancia de la aplicación Flask."""
+    
+    # 1. Crear la instancia de Flask
+    app = Flask(__name__)
 
-# 5. Punto de arranque
+    # 2. Configuración de JWT
+    configure_jwt(app)
+    
+    # 3. Registro de Blueprints
+    app.register_blueprint(users_bp, url_prefix='/auth')
+    app.register_blueprint(biciusuario_bp, url_prefix='/biciusuarios')
+
+    # 4. Registro de Manejadores de Errores JWT
+    register_jwt_error_handlers(app)
+
+    # 5. Ruta de Bienvenida/Estado
+    @app.route('/')
+    def index():
+        return jsonify({
+            'message': 'API de Biciusuarios activa',
+            'endpoints': {
+                'login': '/auth/login',
+                'register': '/auth/register',
+                'profiles': '/biciusuarios'
+            }
+        }), 200
+
+    return app
+
+# --- Ejecución y Creación de Tablas ---
+
+# 1. Crear las tablas de la base de datos si no existen
+create_tables()
+
+# 2. Crear la aplicación
+app = create_app()
+
 if __name__ == '__main__':
-    create_tables()
-    app.run(debug=True, host='0.0.0.0')
-
+    logger.info("Iniciando servidor Flask...")
+    # Puedes cambiar el host o puerto si es necesario
+    app.run(debug=True, host='0.0.0.0', port=5000)

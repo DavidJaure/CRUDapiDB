@@ -4,7 +4,7 @@ from flask_jwt_extended import create_access_token, jwt_required
 from flask_jwt_extended.exceptions import NoAuthorizationError
 
 # Importaciones de tu arquitectura
-from services.users_services import UsersService
+from services.user_services import UsersService
 from config.database import get_db_session # Necesitas importar esta función
 
 logging.basicConfig(level=logging.INFO)

@@ -4,9 +4,9 @@ from sqlalchemy.orm import Session
 from werkzeug.security import generate_password_hash, check_password_hash 
 
 # Importamos el modelo y el repositorio
-from repositories.users_repository import UserRepository
+from repositories.users_repository import UsersRepository
 from models.users_model import User 
-from models.db import RegistroBiciusuario 
+from models.users_model import RegistroBiciusuario 
 # Usamos RegistroBiciusuario solo para referencia si fuera necesario, 
 # pero la lógica principal usa User.
 
