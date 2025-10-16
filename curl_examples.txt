@@ -54,3 +54,30 @@ curl -X GET http://localhost:5000/biciusuarios/${ID_JUAN} -H "Authorization: Bea
 
 echo "\nIntento de consulta sin token (Debe fallar con 401 Unauthorized):"
 curl -X GET http://localhost:5000/biciusuarios/${ID_JUAN}
+
+
+
+
+
+
+curl -X PUT http://localhost:5000/biciusuarios/1 \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer <TU_TOKEN_MÁS_RECIENTE>" \
+    -d '{
+        "nombre_biciusuario": "JuanPerezActualizado",
+        "bicicletas": [
+            {"marca": "Trek", "modelo": "Domane", "color": "Rojo", "serial": "TRK12345"},
+            {"marca": "Specialized", "modelo": "Allez", "color": "Negro", "serial": "SPZ67890"}
+        ],
+        "registros": [
+            {"serial": "TRK12345"}
+        ]
+    }'
+
+
+
+
+
+
+Despues de genrar el token:
+$ curl -X GET http://localhost:5000/biciusuarios/1 -H "Authorization: Bearer TOKEN"
