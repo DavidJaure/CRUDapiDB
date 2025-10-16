@@ -10,3 +10,5 @@ Flask==3.0.3           # Framework web para crear APIs y aplicaciones web
 SQLAlchemy==2.0.30     # ORM para interactuar con bases de datos relacionales usando objetos Python
 pymysql==1.1.0         # Driver para conectar SQLAlchemy con bases de datos MySQL
 python-dotenv==1.0.1   # Cargar variables de entorno desde archivos .env
+flask-jwt-extended==4.4.4 # Manejo de autenticación y autorización con JWT en Flask
+bcrypt==4.0.1          # Librería para hashing de contraseñas de forma segura

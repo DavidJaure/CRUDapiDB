@@ -2,7 +2,7 @@ import logging
 from sqlalchemy.orm import Session
 # Importaciones de Modelos (Asegúrate de que estas rutas sean correctas)
 from models.users_model import User 
-from models.db import RegistroBiciusuario, Bicicleta 
+from models.users_model import RegistroBiciusuario, Bicicleta 
 from repositories.users_repository import UserRepository 
 
 logging.basicConfig(level=logging.INFO)
