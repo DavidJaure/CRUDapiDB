@@ -18,7 +18,7 @@ class BiciusuariosService:
 
     def __init__(self, db_session: Session):
         """Inicializa el servicio con una sesión de base de datos."""
-        self.repository = UserRepository(db_session)
+        self.repository = UsersRepository(db_session)
         logger.info("Servicio de Biciusuarios inicializado")
 
     def _to_dict(self, user: User) -> dict:

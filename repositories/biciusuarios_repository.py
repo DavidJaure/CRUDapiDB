@@ -4,7 +4,7 @@ logger = logging.getLogger(__name__)
 
 from sqlalchemy.orm import Session
 # Importamos los modelos de tu API
-from models.db import RegistroBiciusuario 
+from models.users_model import RegistroBiciusuario 
 
 class RegistroBiciusuarioRepository:
     """
