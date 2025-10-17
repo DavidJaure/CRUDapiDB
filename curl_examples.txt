@@ -14,11 +14,11 @@ curl -X POST http://localhost:5000/auth/register -H "Content-Type: application/j
 # -----------------------------
 # 2. Obtener Tokens JWT (Ruta: /auth/login)
 # -----------------------------
-echo "Token de Juan Pérez (TOKEN):"
+> Token de Juan Pérez (TOKEN):
 curl -X POST http://localhost:5000/auth/login -H "Content-Type: application/json" -d '{"username": "juanperez", "password": "pass123"}'
-echo "\nToken de María López:"
+> Token de María López:
 curl -X POST http://localhost:5000/auth/login -H "Content-Type: application/json" -d '{"username": "marialopez", "password": "pass123"}'
-echo "\nToken de Pedro Gómez:"
+> Token de Pedro Gómez:
 curl -X POST http://localhost:5000/auth/login -H "Content-Type: application/json" -d '{"username": "pedrogomez", "password": "pass123"}'
 
 
