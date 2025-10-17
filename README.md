@@ -43,6 +43,11 @@ El uso de un entorno virtual (`venv`) es obligatorio para aislar las dependencia
     pip install -r requirements.txt
     ```
 
+4.  **Correr API**
+    ```bash
+    python -m src.app
+    ```
+
 ### Dependencias Críticas (Asegúrate de que estén en `requirements.txt`):
 - `Flask`
 - `Flask-JWT-Extended`
