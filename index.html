@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biciusuarios API Client</title>
+    <!-- Carga del CDN de Tailwind CSS para un diseño moderno y responsive -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-4 sm:p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <header class="text-center py-6 mb-8 bg-white shadow-md rounded-lg">
+            <h1 class="text-4xl font-bold text-blue-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 inline-block mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM6 9a1 1 0 100 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                </svg>
+                Gestión de Biciusuarios
+            </h1>
+            <p class="text-gray-500 mt-2">Consume el endpoint local: http://localhost:5000/biciusuarios</p>
+        </header>
+
+        <!-- Contenedor de Alerta/Mensajes -->
+        <div id="message-box" class="hidden p-3 mb-6 rounded-lg font-medium transition-opacity duration-300"></div>
+
+        <!-- SECCIÓN 1: LOGIN -->
+        <section id="login-section" class="bg-white p-6 md:p-10 rounded-xl shadow-2xl transition-all duration-500 mb-8">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">Iniciar Sesión</h2>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700">Usuario (Email)</label>
+                    <input type="email" id="username" name="username" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" value="test@example.com">
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+                    <input type="password" id="password" name="password" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" value="password">
+                </div>
+                <button type="submit" id="login-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200">
+                    <span id="login-text">Acceder a la API</span>
+                    <span id="login-spinner" class="hidden animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+                </button>
+            </form>
+            <p class="mt-4 text-sm text-center text-gray-500">
+                Usa `test@example.com` / `password` o un usuario que hayas registrado.
+            </p>
+        </section>
+
+        <!-- SECCIÓN 2: DATOS DE BICISUARIOS -->
+        <section id="data-section" class="hidden bg-white p-6 md:p-10 rounded-xl shadow-2xl">
+            <div class="flex justify-between items-center border-b pb-2 mb-6">
+                <h2 class="text-2xl font-semibold text-gray-700">Listado de Biciusuarios</h2>
+                <button onclick="fetchBiciusuarios(true)" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-1.5 px-3 rounded-lg shadow-md flex items-center transition duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H6a1 1 0 011-1v-1a1 1 0 00-2 0v1H4a1 1 0 000 2h.001v.01zM16 10a1 1 0 011 1v2.101a7.002 7.002 0 01-11.601 2.566 1 1 0 111.885-.666A5.002 5.002 0 0014.001 13H14a1 1 0 01-1-1v-1a1 1 0 002 0v1h1a1 1 0 000-2h-.001v-.01z" clip-rule="evenodd" />
+                    </svg>
+                    Refrescar Datos
+                </button>
+            </div>
+            
+            <div id="biciusuarios-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <p class="text-gray-500 col-span-full" id="data-status">Token almacenado. Presiona "Refrescar Datos" para cargar la lista.</p>
+                <!-- Las tarjetas de biciusuarios se inyectarán aquí -->
+            </div>
+
+            <div class="mt-8 text-center">
+                <button onclick="logout()" class="text-sm text-red-500 hover:text-red-700 font-medium transition duration-200">
+                    Cerrar Sesión y Limpiar Token
+                </button>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        // --- CONFIGURACIÓN Y UTILIDADES ---
+        const API_BASE_URL = 'http://localhost:5000';
+        const MESSAGE_BOX = document.getElementById('message-box');
+        const LOGIN_SECTION = document.getElementById('login-section');
+        const DATA_SECTION = document.getElementById('data-section');
+        const BICIUSUARIOS_LIST = document.getElementById('biciusuarios-list');
+        const DATA_STATUS = document.getElementById('data-status');
+        const LOGIN_FORM = document.getElementById('login-form');
+        const LOGIN_BTN = document.getElementById('login-btn');
+        const LOGIN_TEXT = document.getElementById('login-text');
+        const LOGIN_SPINNER = document.getElementById('login-spinner');
+
+        /** Muestra un mensaje temporal en la interfaz */
+        function displayMessage(text, type = 'success') {
+            MESSAGE_BOX.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800', 'bg-yellow-100', 'text-yellow-800');
+            
+            let classList = [];
+            if (type === 'error') {
+                classList = ['bg-red-100', 'text-red-800'];
+            } else if (type === 'success') {
+                classList = ['bg-green-100', 'text-green-800'];
+            } else {
+                classList = ['bg-yellow-100', 'text-yellow-800'];
+            }
+            
+            MESSAGE_BOX.classList.add(...classList);
+            MESSAGE_BOX.textContent = text;
+            setTimeout(() => {
+                MESSAGE_BOX.classList.add('hidden');
+            }, 5000);
+        }
+
+        /** Renderiza el estado de la aplicación (Login/Datos) */
+        function renderState() {
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                LOGIN_SECTION.classList.add('hidden');
+                DATA_SECTION.classList.remove('hidden');
+                displayMessage('¡Login exitoso! Token almacenado. Ya puedes cargar los datos.', 'success');
+            } else {
+                LOGIN_SECTION.classList.remove('hidden');
+                DATA_SECTION.classList.add('hidden');
+                BICIUSUARIOS_LIST.innerHTML = '<p class="text-gray-500 col-span-full" id="data-status">Inicia sesión para cargar la lista.</p>';
+            }
+        }
+
+        /** Maneja el proceso de Login */
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            // Deshabilitar botón y mostrar spinner
+            LOGIN_BTN.disabled = true;
+            LOGIN_TEXT.classList.add('hidden');
+            LOGIN_SPINNER.classList.remove('hidden');
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginUrl = `${API_BASE_URL}/auth/login`;
+
+            try {
+                const response = await fetch(loginUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: username, password: password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // La API devuelve 'access_token'
+                    localStorage.setItem('access_token', data.access_token);
+                    renderState();
+                    displayMessage('Sesión iniciada con éxito. Token JWT guardado.', 'success');
+                    // Cargar datos automáticamente tras el login
+                    fetchBiciusuarios();
+                } else {
+                    const errorMsg = data.msg || data.message || 'Credenciales inválidas.';
+                    displayMessage(`Error al iniciar sesión: ${errorMsg}`, 'error');
+                }
+
+            } catch (error) {
+                console.error('Error de red durante el login:', error);
+                displayMessage('Error de conexión con el servidor (verifique que esté corriendo en el puerto 5000).', 'error');
+            } finally {
+                // Habilitar botón y ocultar spinner
+                LOGIN_BTN.disabled = false;
+                LOGIN_TEXT.classList.remove('hidden');
+                LOGIN_SPINNER.classList.add('hidden');
+            }
+        }
+
+        /** Carga los datos de biciusuarios usando el token JWT */
+        async function fetchBiciusuarios(refresh = false) {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                displayMessage('No hay token de autenticación. Por favor, inicia sesión.', 'error');
+                return;
+            }
+
+            const dataUrl = `${API_BASE_URL}/biciusuarios`;
+            BICIUSUARIOS_LIST.innerHTML = '<p class="text-center text-blue-500 col-span-full">Cargando datos...</p>';
+
+            try {
+                const response = await fetch(dataUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`, // CRÍTICO: Envío del token
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const biciusuarios = await response.json();
+                    renderBiciusuarios(biciusuarios);
+                    if (refresh) {
+                         displayMessage('Datos de biciusuarios refrescados.', 'success');
+                    }
+                } else if (response.status === 401) {
+                    displayMessage('Token expirado o inválido. Por favor, inicia sesión de nuevo.', 'error');
+                    logout(); // Forzar cierre de sesión
+                } else {
+                    const errorData = await response.json();
+                    displayMessage(`Error al cargar los datos: ${errorData.msg || 'Error desconocido'}`, 'error');
+                    BICIUSUARIOS_LIST.innerHTML = `<p class="text-center text-red-500 col-span-full">Error al cargar datos: ${errorData.msg || 'Verifique su token y permisos.'}</p>`;
+                }
+
+            } catch (error) {
+                console.error('Error de red al cargar biciusuarios:', error);
+                displayMessage('Error de conexión con la API.', 'error');
+                BICIUSUARIOS_LIST.innerHTML = '<p class="text-center text-red-500 col-span-full">Error de red. ¿La API está activa?</p>';
+            }
+        }
+
+        /** Renderiza la lista de biciusuarios en tarjetas */
+        function renderBiciusuarios(data) {
+            BICIUSUARIOS_LIST.innerHTML = ''; // Limpiar lista
+            
+            if (!Array.isArray(data) || data.length === 0) {
+                BICIUSUARIOS_LIST.innerHTML = '<p class="text-gray-500 col-span-full">No se encontraron biciusuarios.</p>';
+                return;
+            }
+
+            // Asumo que cada item tiene: id, nombre, email, ciudad
+            data.forEach(user => {
+                const card = document.createElement('div');
+                card.className = 'bg-gray-100 p-5 rounded-xl shadow-lg hover:shadow-xl transition duration-300 transform hover:-translate-y-0.5 border-t-4 border-blue-500';
+                card.innerHTML = `
+                    <p class="text-xs font-mono text-gray-400 mb-2">ID: ${user.id || 'N/A'}</p>
+                    <h3 class="text-xl font-bold text-gray-800 mb-1">${user.nombre || 'Nombre no disponible'}</h3>
+                    <p class="text-blue-600 font-medium mb-3">${user.email || 'Email no disponible'}</p>
+                    <div class="flex items-center text-sm text-gray-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                        </svg>
+                        ${user.ciudad || 'Ciudad no especificada'}
+                    </div>
+                `;
+                BICIUSUARIOS_LIST.appendChild(card);
+            });
+        }
+        
+        /** Cierra la sesión y borra el token */
+        function logout() {
+            localStorage.removeItem('access_token');
+            displayMessage('Sesión cerrada. Token eliminado de localStorage.', 'yellow');
+            renderState();
+        }
+
+        // --- EVENT LISTENERS Y SETUP INICIAL ---
+        
+        // 1. Manejar el envío del formulario de login
+        LOGIN_FORM.addEventListener('submit', handleLogin);
+        
+        // 2. Inicializar el estado de la UI al cargar
+        document.addEventListener('DOMContentLoaded', () => {
+            renderState();
+            // Si hay token al inicio, intenta cargar los datos
+            if (localStorage.getItem('access_token')) {
+                fetchBiciusuarios();
+            }
+        });
+
+    </script>
+</body>
+</html>
