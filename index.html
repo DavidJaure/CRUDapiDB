@@ -138,7 +138,7 @@
         // Si el frontend está en el puerto X (ej. 5500 de Live Server), y la API en el puerto 5002,
         // Codespaces expone ambos con hostnames diferentes (ej. ...-5500.app.github.dev y ...-5002.app.github.dev).
         // Necesitamos reescribir el hostname del frontend al hostname del backend.
-        const FLASK_PORT = '5002'; // El puerto donde corre la API de Flask
+        const FLASK_PORT = '5500'; // El puerto donde corre la API de Flask
 
         function getApiBaseUrl() {
             const currentHostname = window.location.hostname; // ej. codespacename-5500.app.github.dev
