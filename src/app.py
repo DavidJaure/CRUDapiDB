@@ -8,7 +8,7 @@ load_dotenv()
 from sqlalchemy import create_engine
 from flask import Flask, jsonify
 from flask_jwt_extended import JWTManager
-
+from flask_cors import CORS 
 # 1. Configuración de la Base de Datos
 # Importamos la Base para que SQLAlchemy la conozca y cree las tablas
 from models.users_model import Base 
@@ -58,7 +58,10 @@ def create_app():
     
     # Configuramos la DB_URI si fuera necesario, usando el env
     # Nota: Asumo que config/database.py ya usa os.getenv("SQLALCHEMY_DATABASE_URI")
-    
+        # ***********************************
+    # CRÍTICO: HABILITAR CORS AQUÍ
+    CORS(app) 
+    # ***********************************
     # 2. Configuración de JWT
     configure_jwt(app)
     
@@ -97,4 +100,4 @@ if __name__ == '__main__':
     logger.info("Iniciando servidor Flask...")
     # Puedes cambiar el host o puerto si es necesario
     # NOTA: En un entorno real, usaríamos FLASK_DEBUG=os.getenv("FLASK_DEBUG")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5200)
