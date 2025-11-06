@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -18,16 +20,13 @@
             height: 100%;
             background: rgba(255, 255, 255, 0.8);
             z-index: 50;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen p-4 sm:p-8">
 
     <!-- Overlay de Carga -->
-    <div id="loading-overlay" class="hidden">
+    <div id="loading-overlay" class="hidden fixed inset-0 bg-white/80 z-50 flex justify-center items-center">
         <div class="flex flex-col items-center">
             <span class="animate-spin h-10 w-10 border-4 border-blue-500 border-t-transparent rounded-full mb-3"></span>
             <p class="text-blue-600 font-semibold">Procesando...</p>
@@ -44,8 +43,7 @@
                 </svg>
                 Gestión de Biciusuarios
             </h1>
-            <!-- La URL ahora es dinámica y reescrita para funcionar en Codespaces -->
-            <p class="text-gray-500 mt-2">La URL de la API (Flask: 5002) se está reescribiendo dinámicamente para Codespaces.</p>
+            <p class="text-gray-500 mt-2">La URL de la API (Flask: 5200) se está reescribiendo dinámicamente para Codespaces.</p>
         </header>
 
         <!-- Contenedor de Alerta/Mensajes -->
@@ -58,21 +56,17 @@
             <!-- Formulario de LOGIN -->
             <form id="login-form" class="space-y-4">
                 <div>
-                    <label for="username" class="block text-sm font-medium text-gray-700">Usuario (Email)</label>
-                    <input type="email" id="username" name="username" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" value="test@example.com">
+                    <label for="username" class="block text-sm font-medium text-gray-700">Usuario (Username)</label>
+                    <input type="text" id="username" name="username" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" value="juanperez">
                 </div>
                 <div>
                     <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
-                    <input type="password" id="password" name="password" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" value="password">
+                    <input type="password" id="password" name="password" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" value="pass123">
                 </div>
                 <div id="register-fields" class="space-y-4 hidden">
                     <div>
-                        <label for="reg-nombre" class="block text-sm font-medium text-gray-700">Nombre Completo</label>
-                        <input type="text" id="reg-nombre" name="nombre" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label for="reg-ciudad" class="block text-sm font-medium text-gray-700">Ciudad</label>
-                        <input type="text" id="reg-ciudad" name="ciudad" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" value="Bogota">
+                        <label for="reg-nombre" class="block text-sm font-medium text-gray-700">Nombre de Biciusuario</label>
+                        <input type="text" id="reg-nombre" name="nombre_biciusuario" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Ej: JuanPerezCiclista">
                     </div>
                 </div>
                 <button type="submit" id="auth-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 flex items-center justify-center">
@@ -135,19 +129,15 @@
         // --- CONFIGURACIÓN Y UTILIDADES ---
         
         // CORRECCIÓN CRÍTICA PARA CODESPACES/GITPOD:
-        // Si el frontend está en el puerto X (ej. 5500 de Live Server), y la API en el puerto 5002,
-        // Codespaces expone ambos con hostnames diferentes (ej. ...-5500.app.github.dev y ...-5002.app.github.dev).
-        // Necesitamos reescribir el hostname del frontend al hostname del backend.
-        const FLASK_PORT = '5500'; // El puerto donde corre la API de Flask
+        const FLASK_PORT = '5200'; // El puerto donde corre la API de Flask
 
         function getApiBaseUrl() {
-            const currentHostname = window.location.hostname; // ej. codespacename-5500.app.github.dev
+            const currentHostname = window.location.hostname;
             const currentProtocol = window.location.protocol;
             const currentPort = window.location.port;
 
             // 1. Detección de entorno local (127.0.0.1 o localhost)
             if (currentHostname === 'localhost' || currentHostname === '127.0.0.1') {
-                // En entorno local, la API está en el puerto FLASK_PORT
                 const url = `${currentProtocol}//${currentHostname}:${FLASK_PORT}`;
                 console.log("🛠️ Entorno local detectado. API Base URL:", url);
                 return url;
@@ -155,11 +145,8 @@
             
             // 2. Detección de Codespaces/Gitpod (usa el proxy de puertos)
             if (currentHostname.includes('.app.github.dev') || currentHostname.includes('.gitpod.io')) {
-                // El hostname de Codespaces/Gitpod incluye un puerto al final (ej: codespacename-8000.app.github.dev)
-                // Usamos una expresión regular más robusta para reemplazar el puerto actual.
                 let apiHostname = currentHostname.replace(/-\d+(\.app\.github\.dev|\.gitpod\.io)$/, `-${FLASK_PORT}$1`);
                 
-                // Si la regex no encuentra el puerto, puede ser un entorno más simple (ej: puerto directo)
                 if (apiHostname === currentHostname) {
                     apiHostname = currentHostname.replace(/:\d+$/, `:${FLASK_PORT}`);
                 }
@@ -280,7 +267,6 @@
                 LOGIN_FORM.removeEventListener('submit', handleLogin);
                 LOGIN_FORM.addEventListener('submit', handleRegister);
                 document.getElementById('reg-nombre').setAttribute('required', 'required');
-                document.getElementById('reg-ciudad').setAttribute('required', 'required');
 
             } else {
                 AUTH_TITLE.textContent = 'Iniciar Sesión';
@@ -290,7 +276,6 @@
                 LOGIN_FORM.removeEventListener('submit', handleRegister);
                 LOGIN_FORM.addEventListener('submit', handleLogin);
                 document.getElementById('reg-nombre').removeAttribute('required');
-                document.getElementById('reg-ciudad').removeAttribute('required');
             }
         }
         
@@ -311,7 +296,7 @@
                 const response = await fetch(loginUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: username, password: password })
+                    body: JSON.stringify({ username: username, password: password })
                 });
 
                 const data = await response.json();
@@ -330,8 +315,7 @@
 
             } catch (error) {
                 console.error('Error de red durante el login:', error);
-                // Mensaje más específico para ayudar a la depuración del usuario
-                displayMessage('Error de conexión con el servidor. Verifique: 1) Que el backend de Flask esté corriendo en el puerto 5002. 2) La URL de la API generada en la consola.', 'error');
+                displayMessage('Error de conexión con el servidor. Verifique que el backend de Flask esté corriendo.', 'error');
             } finally {
                 toggleLoadingButton(false);
             }
@@ -342,10 +326,9 @@
             event.preventDefault();
             toggleLoadingButton(true);
 
-            const email = document.getElementById('username').value;
+            const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            const nombre = document.getElementById('reg-nombre').value;
-            const ciudad = document.getElementById('reg-ciudad').value;
+            const nombre_biciusuario = document.getElementById('reg-nombre').value;
             
             const registerUrl = `${API_BASE_URL}/auth/register`;
 
@@ -353,7 +336,7 @@
                 const response = await fetch(registerUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password, nombre_biciusuario: nombre, ciudad })
+                    body: JSON.stringify({ username, password, nombre_biciusuario })
                 });
 
                 const data = await response.json();
@@ -369,8 +352,7 @@
 
             } catch (error) {
                 console.error('Error de red durante el registro:', error);
-                // Mensaje más específico para ayudar a la depuración del usuario
-                displayMessage('Error de conexión con el servidor. Verifique: 1) Que el backend de Flask esté corriendo en el puerto 5002. 2) La URL de la API generada en la consola.', 'error');
+                displayMessage('Error de conexión con el servidor. Verifique que el backend de Flask esté corriendo.', 'error');
             } finally {
                 toggleLoadingButton(false);
             }
@@ -410,7 +392,7 @@
 
             } catch (error) {
                 console.error('Error de red al cargar biciusuarios:', error);
-                BICIUSUARIOS_LIST.innerHTML = '<p class="text-center text-red-500 col-span-full">Error de red. ¿La API está activa en 5002?</p>';
+                BICIUSUARIOS_LIST.innerHTML = '<p class="text-center text-red-500 col-span-full">Error de red. ¿La API está activa?</p>';
             }
         }
 
@@ -446,7 +428,7 @@
 
             } catch (error) {
                 console.error('Error de red al cargar perfil:', error);
-                PROFILE_FORM_CONTAINER.innerHTML = '<p class="text-center text-red-500 col-span-full">Error de red. ¿La API está activa en 5002?</p>';
+                PROFILE_FORM_CONTAINER.innerHTML = '<p class="text-center text-red-500 col-span-full">Error de red. ¿La API está activa?</p>';
             }
         }
 
@@ -461,25 +443,24 @@
 
             data.forEach(user => {
                 const bikeCount = user.bicicletas ? user.bicicletas.length : 0;
+                const registroCount = user.registros ? user.registros.length : 0;
                 const card = document.createElement('div');
                 card.className = 'bg-gray-100 p-5 rounded-xl shadow-lg transition duration-300 transform hover:-translate-y-0.5 border-t-4 border-blue-500';
                 card.innerHTML = `
-                    <p class="text-xs font-mono text-gray-400 mb-2">ID: ${user.id || 'N/A'}</p>
+                    <p class="text-xs font-mono text-gray-400 mb-2">ID: ${user.id || 'N/A'} | Username: ${user.username || 'N/A'}</p>
                     <h3 class="text-xl font-bold text-gray-800 mb-1">${user.nombre_biciusuario || 'Nombre no disponible'}</h3>
-                    <p class="text-blue-600 font-medium mb-3">${user.email || 'Email no disponible'}</p>
                     <div class="flex items-center text-sm text-gray-600 space-x-4">
                         <div class="flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M5.05 4.05a7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                <path d="M11 5a2 2 0 10-4 0v2.102a2 2 0 001.347 1.834L10.5 10l-1.153 1.064A2 2 0 008 13.898V16a2 2 0 104 0v-2.102a2 2 0 00-1.347-1.834L9.5 10l1.153-1.064A2 2 0 0012 6.102V5z" />
                             </svg>
-                            ${user.ciudad || 'Ciudad no especificada'}
+                            ${bikeCount} Bicicleta${bikeCount !== 1 ? 's' : ''}
                         </div>
                         <div class="flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M11 5a2 2 0 10-4 0v2.102a2 2 0 001.347 1.834L10.5 10l-1.153 1.064A2 2 0 008 13.898V16a2 2 0 104 0v-2.102a2 2 0 00-1.347-1.834L9.5 10l1.153-1.064A2 2 0 0012 6.102V5z" />
-                                <path fill-rule="evenodd" d="M12.316 4.34a1 1 0 011.082-.239 6 6 0 013.166 4.417 1 1 0 01-1.082 1.239 1 1 0 01-.238-1.082 4 4 0 00-2.094-2.94 1 1 0 01-.772-.882V5z" clip-rule="evenodd" />
+                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
                             </svg>
-                            ${bikeCount} Bicicleta${bikeCount !== 1 ? 's' : ''}
+                            ${registroCount} Registro${registroCount !== 1 ? 's' : ''}
                         </div>
                     </div>
                 `;
@@ -489,43 +470,48 @@
         
         /** Renderiza el formulario de edición de perfil */
         function renderProfileForm(user) {
-            // Asume que bicicletas es un array de objetos o null/undefined
+            // Formatear bicicletas y registros como JSON
             const bicicletasJson = JSON.stringify(user.bicicletas || [], null, 2);
+            const registrosJson = JSON.stringify(user.registros || [], null, 2);
 
             PROFILE_FORM_CONTAINER.innerHTML = `
                 <form id="profile-edit-form" class="space-y-6">
-                    <!-- ID y Email (solo lectura) -->
+                    <!-- ID y Username (solo lectura) -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">ID (Usuario)</label>
                             <input type="text" value="${user.id || 'N/A'}" readonly class="mt-1 block w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg shadow-sm cursor-not-allowed">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Email</label>
-                            <input type="email" value="${user.email || 'N/A'}" readonly class="mt-1 block w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg shadow-sm cursor-not-allowed">
+                            <label class="block text-sm font-medium text-gray-700">Username</label>
+                            <input type="text" value="${user.username || 'N/A'}" readonly class="mt-1 block w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg shadow-sm cursor-not-allowed">
                         </div>
                     </div>
                     
-                    <!-- Nombre y Ciudad (editable) -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="edit-nombre" class="block text-sm font-medium text-gray-700">Nombre de Biciusuario</label>
-                            <input type="text" id="edit-nombre" name="nombre_biciusuario" value="${user.nombre_biciusuario || ''}" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label for="edit-ciudad" class="block text-sm font-medium text-gray-700">Ciudad</label>
-                            <input type="text" id="edit-ciudad" name="ciudad" value="${user.ciudad || ''}" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        </div>
+                    <!-- Nombre de Biciusuario (editable) -->
+                    <div>
+                        <label for="edit-nombre" class="block text-sm font-medium text-gray-700">Nombre de Biciusuario</label>
+                        <input type="text" id="edit-nombre" name="nombre_biciusuario" value="${user.nombre_biciusuario || ''}" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     
                     <!-- Bicicletas (JSON editable) -->
                     <div>
                         <label for="edit-bicicletas" class="block text-sm font-medium text-gray-700 flex justify-between items-center">
-                            Bicicletas (Formato JSON Array de Objetos)
-                            <span class="text-xs text-red-500 font-normal">¡Cuidado al editar este campo!</span>
+                            Bicicletas (Formato JSON Array)
+                            <span class="text-xs text-blue-500 font-normal">Array de objetos con: marca, modelo, color, serial</span>
                         </label>
-                        <textarea id="edit-bicicletas" name="bicicletas" rows="6" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg shadow-inner font-mono text-sm focus:ring-blue-500 focus:border-blue-500">${bicicletasJson}</textarea>
-                        <p class="text-xs text-gray-500 mt-1">Ejemplo: \`[{"modelo": "Trek", "color": "Rojo"}, {"modelo": "Specialized", "color": "Azul"}]\`</p>
+                        <textarea id="edit-bicicletas" name="bicicletas" rows="8" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg shadow-inner font-mono text-sm focus:ring-blue-500 focus:border-blue-500">${bicicletasJson}</textarea>
+                        <p class="text-xs text-gray-500 mt-1">Ejemplo: <code>[{"marca": "Trek", "modelo": "Domane", "color": "Rojo", "serial": "TRK12345"}]</code></p>
+                    </div>
+
+                    <!-- Registros (JSON editable) -->
+                    <div>
+                        <label for="edit-registros" class="block text-sm font-medium text-gray-700 flex justify-between items-center">
+                            Registros (Formato JSON Array)
+                            <span class="text-xs text-blue-500 font-normal">Array de objetos con: serial</span>
+                        </label>
+                        <textarea id="edit-registros" name="registros" rows="4" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg shadow-inner font-mono text-sm focus:ring-blue-500 focus:border-blue-500">${registrosJson}</textarea>
+                        <p class="text-xs text-gray-500 mt-1">Ejemplo: <code>[{"serial": "TRK12345"}, {"serial": "SPZ67890"}]</code></p>
                     </div>
 
                     <!-- Botones de Acción -->
@@ -557,19 +543,20 @@
             const userId = localStorage.getItem('user_id');
             
             const nombre = document.getElementById('edit-nombre').value;
-            const ciudad = document.getElementById('edit-ciudad').value;
             const bicicletasJson = document.getElementById('edit-bicicletas').value;
-            let bicicletas;
+            const registrosJson = document.getElementById('edit-registros').value;
+            let bicicletas, registros;
 
             try {
-                // 1. Parsear el JSON de bicicletas
+                // 1. Parsear el JSON de bicicletas y registros
                 bicicletas = JSON.parse(bicicletasJson);
+                registros = JSON.parse(registrosJson);
 
-                // 2. Construir el cuerpo de la solicitud (solo campos modificables)
+                // 2. Construir el cuerpo de la solicitud
                 const updateData = {
                     nombre_biciusuario: nombre,
-                    ciudad: ciudad,
-                    bicicletas: bicicletas 
+                    bicicletas: bicicletas,
+                    registros: registros
                 };
 
                 const updateUrl = `${API_BASE_URL}/biciusuarios/${userId}`;
@@ -600,7 +587,7 @@
 
             } catch (e) {
                 if (e instanceof SyntaxError) {
-                    displayMessage('Error: El campo Bicicletas no es un JSON válido. Debe ser un array de objetos.', 'error');
+                    displayMessage('Error: Los campos Bicicletas o Registros no son JSON válido. Debe ser un array de objetos.', 'error');
                 } else if (e instanceof TypeError && e.message.includes('fetch')) {
                     console.error('Error de red durante la actualización:', e);
                     displayMessage('Error de conexión con el servidor. Verifique que el backend esté activo.', 'error');

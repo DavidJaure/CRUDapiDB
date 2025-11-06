@@ -12,3 +12,4 @@ pymysql==1.1.0         # Driver para conectar SQLAlchemy con bases de datos MySQ
 python-dotenv==1.0.1   # Cargar variables de entorno desde archivos .env
 flask-jwt-extended==4.4.4 # Manejo de autenticación y autorización con JWT en Flask
 bcrypt==4.0.1          # Librería para hashing de contraseñas de forma segura
+flask-cors
