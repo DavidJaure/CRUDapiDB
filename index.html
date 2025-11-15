@@ -170,8 +170,6 @@ LOGIN_FORM.addEventListener('submit', async e => {
   toggleLoadingButton(false);
 });
 
-/* === REEMPLAZAR switchToRegister() y renderRegisterForm() === */
-
 function switchToRegister() {
   // Oculta el login
   LOGIN_FORM.classList.add("hidden");
@@ -266,8 +264,14 @@ function renderRegisterForm() {
 document.getElementById('copy-token').addEventListener('click', ()=>{
   const token = TOKEN_DISPLAY.value.trim();
   if (!token) return displayMessage('No hay token','error');
-  document.execCommand('copy');
-  displayMessage('Token copiado al portapapeles','success');
+  navigator.clipboard.writeText(token).then(() => {
+    displayMessage('Token copiado al portapapeles','success');
+  }).catch(() => {
+    // Fallback para navegadores antiguos
+    TOKEN_DISPLAY.select();
+    document.execCommand('copy');
+    displayMessage('Token copiado al portapapeles','success');
+  });
 });
 
 /* --- Validar Token --- */
@@ -291,7 +295,6 @@ document.getElementById('validate-token').addEventListener('click', async ()=>{
 function renderState() {
   const token = localStorage.getItem('access_token');
   const userId = localStorage.getItem('user_id');
-  // nota: CURRENT_VIEW no se usa en esta versión, sólo se mantiene compatibilidad
   if(token && userId){
     AUTH_SECTION.classList.add('hidden');
     DATA_CONTAINER.classList.remove('hidden');
@@ -386,11 +389,15 @@ function renderProfileForm(data) {
         <label class="block text-sm font-medium">Registros</label>
 
         <div id="registrosContainer">
-          ${data.registros.map((reg) => `
-            <div class="p-3 border rounded mb-2">
-              <input class="w-full p-1 border rounded" placeholder="Serial bicicleta" value="${reg.serial}">
-            </div>
-          `).join('')}
+              ${data.registros.map((reg, i) => `
+              <div class="p-3 border rounded mb-2 registro-item">
+                <input class="w-full p-1 border rounded mb-2" placeholder="Serial bicicleta" value="${reg.serial}" readonly>
+
+                <button type="button" class="bg-red-500 text-white px-3 py-1 rounded delete-registro-btn">
+                  Eliminar registro
+                </button>
+              </div>
+            `).join('')}
         </div>
 
         <button type="button" id="addRegistro" class="bg-blue-500 text-white px-2 py-1 rounded mt-2">
@@ -410,10 +417,11 @@ function renderProfileForm(data) {
     </form>
   `;
 
-  attachProfileEvents(data.id_biciusuario);
+  attachProfileEvents(data.id || data.id_biciusuario);
 }
 
 function attachProfileEvents(userId) {
+  attachDeleteRegistroEvents();  // ← activar botones existentes
 
   // Añadir bicicleta
   document.getElementById("addBike").onclick = () => {
@@ -430,10 +438,15 @@ function attachProfileEvents(userId) {
   // Añadir registro
   document.getElementById("addRegistro").onclick = () => {
     document.getElementById("registrosContainer").insertAdjacentHTML("beforeend", `
-      <div class="p-3 border rounded mb-2">
-        <input class="w-full p-1 border rounded" placeholder="Serial bicicleta">
+      <div class="p-3 border rounded mb-2 registro-item">
+          <input class="w-full p-1 border rounded mb-2" placeholder="Serial bicicleta" value="">
+          <button type="button" class="bg-red-500 text-white px-3 py-1 rounded delete-registro-btn">
+            Eliminar registro
+          </button>
       </div>
     `);
+
+    attachDeleteRegistroEvents(); // activa el botón inmediatamente
   };
 
   // Guardar datos
@@ -444,20 +457,24 @@ function attachProfileEvents(userId) {
 
     const nombre = document.getElementById("nombre_biciusuario").value;
 
-    const bicicletas = [...document.querySelectorAll("#bicicletasContainer > div")].map(div => {
-      const inputs = div.querySelectorAll("input");
-      return {
-        marca: inputs[0].value,
-        modelo: inputs[1].value,
-        color: inputs[2].value,
-        serial: inputs[3].value
-      };
-    });
+    const bicicletas = [...document.querySelectorAll("#bicicletasContainer > div")]
+      .map(div => {
+        const inputs = div.querySelectorAll("input");
+        return {
+          marca: inputs[0].value,
+          modelo: inputs[1].value,
+          color: inputs[2].value,
+          serial: inputs[3].value
+        };
+      })
+      .filter(bici => bici.serial && bici.serial.trim() !== '');
 
-    const registros = [...document.querySelectorAll("#registrosContainer > div")].map(div => {
-      const input = div.querySelector("input");
-      return { serial: input.value };
-    });
+    const registros = [...document.querySelectorAll("#registrosContainer > div")]
+      .map(div => {
+        const input = div.querySelector("input");
+        return { serial: input.value };
+      })
+      .filter(reg => reg.serial && reg.serial.trim() !== '');
 
     const res = await fetch(`${API_BASE_URL}/biciusuarios/${userId}`, {
       method: "PUT",
@@ -473,8 +490,12 @@ function attachProfileEvents(userId) {
     });
 
     const data = await res.json();
-    if (res.ok) displayMessage("Perfil actualizado correctamente", "success");
-    else displayMessage(data.msg || "Error al actualizar", "error");
+    if (res.ok) {
+      displayMessage("Perfil actualizado correctamente", "success");
+      await fetchProfile(userId);
+    } else {
+      displayMessage(data.msg || "Error al actualizar", "error");
+    }
   };
 
   // Eliminar perfil
@@ -498,58 +519,6 @@ function attachProfileEvents(userId) {
       displayMessage(data.msg || "Error al eliminar perfil", "error");
     }
   };
-
-}
-
-
-/* --- Actualizar perfil --- */
-async function handleUpdateProfile(e){
-  e.preventDefault();
-  const token=localStorage.getItem('access_token');
-  const id=localStorage.getItem('user_id');
-  const nombre=document.getElementById('edit-nombre') ? document.getElementById('edit-nombre').value : '';
-
-  try{
-    toggleOverlay(true);
-    const res=await fetch(`${API_BASE_URL}/biciusuarios/${id}`,{
-      method:'PUT',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
-      body:JSON.stringify({nombre_biciusuario:nombre})
-    });
-
-    if(res.ok){
-      displayMessage('Perfil actualizado correctamente.','success');
-      fetchProfile(id);
-      fetchBiciusuarios();
-    }
-    else {
-      const data = await res.json();
-      displayMessage(data.error || data.msg || 'Error al actualizar el perfil.','error');
-    }
-  }catch{displayMessage('Error de conexión','error');}
-  toggleOverlay(false);
-}
-
-/* --- Eliminar perfil --- */
-async function handleDeleteProfile(){
-  const token=localStorage.getItem('access_token');
-  const id=localStorage.getItem('user_id');
-
-  try{
-    toggleOverlay(true);
-    const res=await fetch(`${API_BASE_URL}/biciusuarios/${id}`,{
-      method:'DELETE',headers:{'Authorization':`Bearer ${token}`}
-    });
-
-    if(res.ok){
-      displayMessage('Cuenta eliminada correctamente.','success');
-      setTimeout(logout, 1500);
-    }
-    else {
-      const data = await res.json();
-      displayMessage(data.error || data.msg || 'Error al eliminar la cuenta.','error');
-    }
-  }catch{displayMessage('Error de red','error');}
-  toggleOverlay(false);
 }
 
 /* --- LOGOUT --- */
@@ -576,6 +545,112 @@ document.querySelectorAll('.tab-button').forEach(btn=>btn.addEventListener('clic
   else if(view==='list') fetchBiciusuarios();
 }));
 
+/* --- SOLUCIÓN DEFINITIVA PARA ELIMINAR REGISTROS --- */
+
+// Función para eliminar un registro usando los nuevos endpoints
+async function deleteRegistroBySerial(serial) {
+  const token = localStorage.getItem("access_token");
+  if (!token) {
+    displayMessage("No hay token de autenticación", "error");
+    return false;
+  }
+
+  try {
+    console.log(`Eliminando registro con serial: ${serial}`);
+    
+    const res = await fetch(`${API_BASE_URL}/biciusuarios/registros/${serial}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    
+    if (res.ok) {
+      console.log("Registro eliminado exitosamente");
+      return true;
+    } else {
+      const errorData = await res.json().catch(() => ({}));
+      console.error("Error del servidor:", errorData);
+      displayMessage(errorData.error || errorData.msg || `Error al eliminar registro: ${res.status}`, "error");
+      return false;
+    }
+  } catch (err) {
+    console.error("Error de conexión eliminando registro:", err);
+    displayMessage("Error de conexión al eliminar registro", "error");
+    return false;
+  }
+}
+
+// Función para eliminar bicicleta usando los nuevos endpoints
+async function deleteBicicletaBySerial(serial) {
+  const token = localStorage.getItem("access_token");
+  if (!token) return false;
+
+  try {
+    console.log(`Eliminando bicicleta con serial: ${serial}`);
+    
+    const res = await fetch(`${API_BASE_URL}/biciusuarios/bicicletas/${serial}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    
+    if (res.ok) {
+      console.log("Bicicleta eliminada exitosamente");
+      return true;
+    } else {
+      const errorData = await res.json().catch(() => ({}));
+      console.error("Error del servidor:", errorData);
+      return false;
+    }
+  } catch (err) {
+    console.error("Error de conexión eliminando bicicleta:", err);
+    return false;
+  }
+}
+
+// Asignar eventos a los botones de eliminar registro - SOLUCIÓN DEFINITIVA
+function attachDeleteRegistroEvents() {
+  document.querySelectorAll(".delete-registro-btn").forEach(btn => {
+    btn.onclick = async () => {
+      if (!confirm("¿Seguro que deseas eliminar este registro y la bicicleta asociada?\n\nEsta acción no se puede deshacer.")) return;
+
+      const registroDiv = btn.closest(".registro-item");
+      const serialInput = registroDiv.querySelector("input");
+      const serial = serialInput.value.trim();
+
+      if (!serial) {
+        displayMessage("El serial está vacío", "error");
+        return;
+      }
+
+      try {
+        toggleOverlay(true);
+        
+        console.log(`Procesando eliminación para serial: ${serial}`);
+        
+        // 1. Eliminar el registro
+        const registroEliminado = await deleteRegistroBySerial(serial);
+        
+        if (registroEliminado) {
+          // 2. También eliminar la bicicleta asociada
+          await deleteBicicletaBySerial(serial);
+          
+          displayMessage("Registro y bicicleta asociada eliminados correctamente", "success");
+          
+          // 3. Forzar recarga del perfil para obtener datos actualizados del servidor
+          setTimeout(() => {
+            fetchProfile();
+          }, 1000);
+        }
+      } catch (error) {
+        console.error("Error en el proceso de eliminación:", error);
+        displayMessage("Error al procesar la eliminación", "error");
+      } finally {
+        toggleOverlay(false);
+      }
+    };
+  });
+}
+
+// Inicializar la aplicación
 renderState();
 </script>
 

@@ -150,3 +150,69 @@ def get_my_profile():
         return jsonify({'error': 'Perfil no encontrado'}), 404
 
     return jsonify(biciusuario), 200
+
+
+# Agregar estos endpoints al final del archivo controllers/biciusuario_bd.py
+
+@biciusuario_bp.route('/registros/<string:serial>', methods=['DELETE'])
+@jwt_required()
+def delete_registro_by_serial(serial):
+    """
+    DELETE /biciusuarios/registros/<serial> - Elimina un registro por serial.
+    Solo permite eliminar registros del usuario autenticado.
+    """
+    current_user_id = get_jwt_identity()
+    logger.info(f"Eliminando registro con serial: {serial} para usuario: {current_user_id}")
+
+    service = get_biciusuarios_service()
+    
+    # Primero obtener el perfil para verificar que el registro pertenece al usuario
+    biciusuario = service.get_biciusuario_by_id(int(current_user_id))
+    if not biciusuario:
+        return jsonify({'error': 'Usuario no encontrado'}), 404
+    
+    # Verificar que el registro existe y pertenece al usuario
+    registro = next((reg for reg in biciusuario['registros'] if reg['serial'] == serial), None)
+    if not registro:
+        return jsonify({'error': 'Registro no encontrado o no pertenece al usuario'}), 404
+    
+    # Aquí necesitarías agregar un método en el servicio para eliminar por serial
+    # Por ahora usaremos una solución temporal
+    success = service.delete_registro_by_serial(int(current_user_id), serial)
+    
+    if success:
+        logger.info(f"Registro eliminado: {serial}")
+        return jsonify({'result': 'Registro eliminado correctamente'}), 200
+    else:
+        return jsonify({'error': 'Error al eliminar registro'}), 500
+
+@biciusuario_bp.route('/bicicletas/<string:serial>', methods=['DELETE'])
+@jwt_required()
+def delete_bicicleta_by_serial(serial):
+    """
+    DELETE /biciusuarios/bicicletas/<serial> - Elimina una bicicleta por serial.
+    Solo permite eliminar bicicletas del usuario autenticado.
+    """
+    current_user_id = get_jwt_identity()
+    logger.info(f"Eliminando bicicleta con serial: {serial} para usuario: {current_user_id}")
+
+    service = get_biciusuarios_service()
+    
+    # Primero obtener el perfil para verificar que la bicicleta pertenece al usuario
+    biciusuario = service.get_biciusuario_by_id(int(current_user_id))
+    if not biciusuario:
+        return jsonify({'error': 'Usuario no encontrado'}), 404
+    
+    # Verificar que la bicicleta existe y pertenece al usuario
+    bicicleta = next((bici for bici in biciusuario['bicicletas'] if bici['serial'] == serial), None)
+    if not bicicleta:
+        return jsonify({'error': 'Bicicleta no encontrada o no pertenece al usuario'}), 404
+    
+    # Aquí necesitarías agregar un método en el servicio para eliminar bicicleta por serial
+    success = service.delete_bicicleta_by_serial(int(current_user_id), serial)
+    
+    if success:
+        logger.info(f"Bicicleta eliminada: {serial}")
+        return jsonify({'result': 'Bicicleta eliminada correctamente'}), 200
+    else:
+        return jsonify({'error': 'Error al eliminar bicicleta'}), 500
