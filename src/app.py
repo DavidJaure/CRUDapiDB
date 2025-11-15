@@ -42,9 +42,17 @@ def create_app():
     app = Flask(__name__)
 
     # 💡 Aquí habilitamos CORS para el frontend correcto
-    CORS(app, origins=[
-        "https://lonely-spooky-cemetery-69gqx5gg6ggp24456-5502.app.github.dev"
-    ])
+   # 💡 CORS totalmente funcional para Live Server en Codespaces
+    CORS(app, resources={r"/*": {
+    "origins": [
+        "https://ideal-umbrella-69gqx5ggq679h9pv-5502.app.github.dev"
+    ],
+    "allow_headers": "*",
+    "expose_headers": "*",
+    "supports_credentials": True,
+    "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+}})
+
 
     configure_jwt(app)
     app.register_blueprint(users_bp, url_prefix='/auth')

@@ -131,3 +131,22 @@ def delete_biciusuario_route(biciusuario_id):
     
     logger.info(f"Biciusuario eliminado: {biciusuario_id}")
     return jsonify({'result': 'Usuario y datos asociados eliminados correctamente'}), 200
+
+##Endpoint para MIperfil segun el id
+@biciusuario_bp.route('/me', methods=['GET'])
+@jwt_required()
+def get_my_profile():
+    """
+    GET /biciusuarios/me - Devuelve el perfil del usuario autenticado.
+    """
+    current_user_id = get_jwt_identity()
+    logger.info(f"Consulta de mi perfil. User ID: {current_user_id}")
+
+    service = get_biciusuarios_service()
+    biciusuario = service.get_biciusuario_by_id(int(current_user_id))
+
+    if biciusuario is None:
+        logger.warning(f"Perfil no encontrado para el usuario {current_user_id}")
+        return jsonify({'error': 'Perfil no encontrado'}), 404
+
+    return jsonify(biciusuario), 200

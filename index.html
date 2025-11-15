@@ -1,287 +1,379 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Biciusuarios API Client</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    #loading-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(255, 255, 255, 0.8); z-index: 50;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Biciusuarios API Client</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+body { font-family: 'Inter', sans-serif; }
+#loading-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(255, 255, 255, 0.8); z-index: 50;
+}
+</style>
 </head>
 <body class="bg-gray-50 min-h-screen p-4 sm:p-8">
-  <!-- Overlay -->
-  <div id="loading-overlay" class="hidden fixed inset-0 bg-white/80 z-50 flex justify-center items-center">
-    <div class="flex flex-col items-center">
-      <span class="animate-spin h-10 w-10 border-4 border-blue-500 border-t-transparent rounded-full mb-3"></span>
-      <p class="text-blue-600 font-semibold">Procesando...</p>
-    </div>
+
+<!-- Overlay -->
+<div id="loading-overlay" class="hidden fixed inset-0 bg-white/80 z-50 flex justify-center items-center">
+  <div class="flex flex-col items-center">
+    <span class="animate-spin h-10 w-10 border-4 border-blue-500 border-t-transparent rounded-full mb-3"></span>
+    <p class="text-blue-600 font-semibold">Procesando...</p>
   </div>
+</div>
 
-  <div class="max-w-6xl mx-auto">
-    <header class="text-center py-6 mb-8 bg-white shadow-md rounded-lg">
-      <h1 class="text-4xl font-bold text-blue-600">Gestión de Biciusuarios</h1>
-      <p class="text-gray-500 mt-2">Autenticación por token JWT manual</p>
-    </header>
+<div class="max-w-6xl mx-auto">
+  <header class="text-center py-6 mb-8 bg-white shadow-md rounded-lg">
+    <h1 class="text-4xl font-bold text-blue-600">Gestión de Biciusuarios</h1>
+    <p class="text-gray-500 mt-2">Autenticación por token JWT manual</p>
+  </header>
 
-    <!-- Mensajes -->
-    <div id="message-box" class="hidden p-3 mb-6 rounded-lg font-medium transition-opacity duration-300"></div>
+  <!-- Mensajes -->
+  <div id="message-box" class="hidden p-3 mb-6 rounded-lg font-medium transition-opacity duration-300"></div>
 
-    <!-- LOGIN -->
-    <section id="auth-section" class="bg-white p-6 md:p-10 rounded-xl shadow-2xl mb-8 max-w-lg mx-auto">
-      <h2 class="text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">Iniciar Sesión</h2>
-      <form id="login-form" class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Usuario</label>
-          <input type="text" id="username" value="juanperez" required
-            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Contraseña</label>
-          <input type="password" id="password" value="pass123" required
-            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500" />
-        </div>
-        <button type="submit" id="auth-btn"
-          class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md flex justify-center items-center">
-          <span id="auth-text">Generar Token</span>
-          <span id="auth-spinner" class="hidden animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full ml-2"></span>
-        </button>
-      </form>
-
-      <!-- Token manual -->
-      <div id="token-section" class="hidden mt-6 bg-gray-100 p-4 rounded-lg border border-gray-300">
-        <h3 class="text-lg font-semibold text-gray-700 mb-2">Tu Token JWT</h3>
-        <textarea id="jwt-token-display" readonly rows="4"
-          class="w-full font-mono text-xs p-2 border border-gray-300 rounded-md bg-white"></textarea>
-        <div class="mt-3 flex space-x-3">
-          <button id="copy-token" class="bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 text-sm">Copiar Token</button>
-          <button id="validate-token" class="bg-green-500 text-white px-3 py-1 rounded-md hover:bg-green-600 text-sm">Validar Token</button>
-        </div>
+  <!-- LOGIN -->
+  <section id="auth-section" class="bg-white p-6 md:p-10 rounded-xl shadow-2xl mb-8 max-w-lg mx-auto">
+    <h2 class="text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">Iniciar Sesión</h2>
+    <form id="login-form" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Usuario</label>
+        <input type="text" id="username" value="juanperez" required
+          class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500" />
       </div>
-    </section>
-
-    <!-- CRUD -->
-    <div id="data-container" class="hidden">
-      <div class="flex space-x-2 border-b mb-6">
-        <button id="tab-list" class="tab-button px-4 py-2 border-b-2 border-blue-600 text-blue-600" data-view="list">Listado Global</button>
-        <button id="tab-profile" class="tab-button px-4 py-2 text-gray-600 border-b-2 border-transparent" data-view="profile">Mi Perfil</button>
-        <button onclick="logout()" class="ml-auto text-sm text-red-500 hover:text-red-700">Cerrar Sesión</button>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Contraseña</label>
+        <input type="password" id="password" value="pass123" required
+          class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500" />
       </div>
+      <button type="submit" id="auth-btn"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md flex justify-center items-center">
+        <span id="auth-text">Generar Token</span>
+        <span id="auth-spinner" class="hidden animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full ml-2"></span>
+      </button>
+    </form>
 
-      <!-- Listado -->
-      <div id="view-list" class="view-content bg-white p-6 rounded-xl shadow-2xl">
-        <div class="flex justify-between items-center border-b pb-2 mb-6">
-          <h2 class="text-2xl font-semibold text-gray-700">Listado de Biciusuarios</h2>
-          <button onclick="fetchBiciusuarios(true)" class="bg-green-500 text-white px-3 py-1.5 rounded-md hover:bg-green-600 text-sm">Refrescar</button>
-        </div>
-        <div id="biciusuarios-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-      </div>
-
-      <!-- Perfil -->
-      <div id="view-profile" class="view-content hidden bg-white p-6 rounded-xl shadow-2xl">
-        <h2 class="text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">Mi Perfil</h2>
-        <div id="profile-form-container"><p class="text-gray-500 text-center py-8">Cargando datos...</p></div>
+    <!-- Token manual -->
+    <div id="token-section" class="hidden mt-6 bg-gray-100 p-4 rounded-lg border border-gray-300">
+      <h3 class="text-lg font-semibold text-gray-700 mb-2">Tu Token JWT</h3>
+      <textarea id="jwt-token-display" readonly rows="4"
+        class="w-full font-mono text-xs p-2 border border-gray-300 rounded-md bg-white"></textarea>
+      <div class="mt-3 flex space-x-3">
+        <button id="copy-token" class="bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 text-sm">Copiar Token</button>
+        <button id="validate-token" class="bg-green-500 text-white px-3 py-1 rounded-md hover:bg-green-600 text-sm">Validar Token</button>
       </div>
     </div>
+  </section>
+
+  <!-- CRUD -->
+  <div id="data-container" class="hidden">
+    <div class="flex space-x-2 border-b mb-6">
+      <button id="tab-list" class="tab-button px-4 py-2 border-b-2 border-blue-600 text-blue-600" data-view="list">Listado Global</button>
+      <button id="tab-profile" class="tab-button px-4 py-2 text-gray-600 border-b-2 border-transparent" data-view="profile">Mi Perfil</button>
+      <button onclick="logout()" class="ml-auto text-sm text-red-500 hover:text-red-700">Cerrar Sesión</button>
+    </div>
+
+    <!-- Listado -->
+    <div id="view-list" class="view-content bg-white p-6 rounded-xl shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-2 mb-6">
+        <h2 class="text-2xl font-semibold text-gray-700">Listado de Biciusuarios</h2>
+        <button onclick="fetchBiciusuarios(true)" class="bg-green-500 text-white px-3 py-1.5 rounded-md hover:bg-green-600 text-sm">Refrescar</button>
+      </div>
+      <div id="biciusuarios-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </div>
+
+    <!-- Perfil -->
+    <div id="view-profile" class="view-content hidden bg-white p-6 rounded-xl shadow-2xl">
+      <h2 class="text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">Mi Perfil</h2>
+      <div id="profile-form-container"><p class="text-gray-500 text-center py-8">Cargando datos...</p></div>
+    </div>
   </div>
+</div>
 
-  <script>
-    // --- CONFIG BASE ---
-    const FLASK_PORT = '5200';
-    function getApiBaseUrl() {
-      const h = window.location.hostname, p = window.location.protocol;
-      if (h === 'localhost' || h === '127.0.0.1') return `${p}//${h}:${FLASK_PORT}`;
-      if (h.includes('.app.github.dev'))
-        return `${p}//${h.replace(/-\d+\.app\.github\.dev$/, `-${FLASK_PORT}.app.github.dev`)}`;
-      return `${p}//${h.includes(':') ? h.replace(/:\d+/, `:${FLASK_PORT}`) : `${h}:${FLASK_PORT}`}`;
-    }
-    const API_BASE_URL = getApiBaseUrl();
+<script>
+/* --- CONFIG BASE --- */
+const FLASK_PORT = '5200';
+function getApiBaseUrl() {
+  const h = window.location.hostname, p = window.location.protocol;
+  if (h === 'localhost' || h === '127.0.0.1') return `${p}//${h}:${FLASK_PORT}`;
+  if (h.includes('.app.github.dev'))
+    return `${p}//${h.replace(/-\d+\.app\.github\.dev$/, `-${FLASK_PORT}.app.github.dev`)}`;
+  return `${p}//${h.includes(':') ? h.replace(/:\d+/, `:${FLASK_PORT}`) : `${h}:${FLASK_PORT}`}`;
+}
+const API_BASE_URL = getApiBaseUrl();
 
-    // --- ELEMENTOS ---
-    const MSG = document.getElementById('message-box');
-    const LOGIN_FORM = document.getElementById('login-form');
-    const AUTH_BTN = document.getElementById('auth-btn');
-    const AUTH_TEXT = document.getElementById('auth-text');
-    const AUTH_SPINNER = document.getElementById('auth-spinner');
-    const TOKEN_SECTION = document.getElementById('token-section');
-    const TOKEN_DISPLAY = document.getElementById('jwt-token-display');
-    const DATA_CONTAINER = document.getElementById('data-container');
-    const AUTH_SECTION = document.getElementById('auth-section');
-    const PROFILE_FORM_CONTAINER = document.getElementById('profile-form-container');
-    const BICIUSUARIOS_LIST = document.getElementById('biciusuarios-list');
+/* --- ELEMENTOS --- */
+const MSG = document.getElementById('message-box');
+const LOGIN_FORM = document.getElementById('login-form');
+const AUTH_BTN = document.getElementById('auth-btn');
+const AUTH_TEXT = document.getElementById('auth-text');
+const AUTH_SPINNER = document.getElementById('auth-spinner');
+const TOKEN_SECTION = document.getElementById('token-section');
+const TOKEN_DISPLAY = document.getElementById('jwt-token-display');
+const DATA_CONTAINER = document.getElementById('data-container');
+const AUTH_SECTION = document.getElementById('auth-section');
+const PROFILE_FORM_CONTAINER = document.getElementById('profile-form-container');
+const BICIUSUARIOS_LIST = document.getElementById('biciusuarios-list');
+const OVERLAY = document.getElementById('loading-overlay');
 
-    // --- UTILIDADES ---
-    function displayMessage(text, type='success') {
-      MSG.classList.remove('hidden');
-      MSG.textContent = text;
-      MSG.className = 'p-3 mb-6 rounded-lg font-medium transition-all ' + (
-        type==='error' ? 'bg-red-100 text-red-800 border border-red-300' :
-        type==='info' ? 'bg-yellow-100 text-yellow-800 border border-yellow-300' :
-        'bg-green-100 text-green-800 border border-green-300');
-      setTimeout(()=>MSG.classList.add('hidden'), 5000);
-    }
-    function toggleLoadingButton(show) {
-      AUTH_BTN.disabled = show;
-      AUTH_SPINNER.classList.toggle('hidden', !show);
-      AUTH_TEXT.classList.toggle('hidden', show);
-    }
+/* --- UTILIDADES --- */
+function displayMessage(text, type='success') {
+  MSG.classList.remove('hidden');
+  MSG.textContent = text;
+  MSG.className = 'p-3 mb-6 rounded-lg font-medium transition-all ' +
+    (type==='error' ? 'bg-red-100 text-red-800 border border-red-300' :
+    type==='info' ? 'bg-yellow-100 text-yellow-800 border border-yellow-300' :
+    'bg-green-100 text-green-800 border border-green-300');
+  setTimeout(()=>MSG.classList.add('hidden'), 5000);
+}
 
-    // --- LOGIN (Generar Token) ---
-    LOGIN_FORM.addEventListener('submit', async e => {
-      e.preventDefault();
-      toggleLoadingButton(true);
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      try {
-        const res = await fetch(`${API_BASE_URL}/auth/login`, {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-        if(res.ok) {
-          TOKEN_DISPLAY.value = data.access_token || '';
-          TOKEN_SECTION.classList.remove('hidden');
-          localStorage.setItem('user_id', data.user_id);
-          displayMessage('Token generado. Copia y valida para continuar.','success');
-        } else displayMessage(data.msg || 'Credenciales inválidas','error');
-      } catch(err){ displayMessage('Error al conectar con la API','error'); }
-      toggleLoadingButton(false);
+function toggleLoadingButton(show) {
+  AUTH_BTN.disabled = show;
+  AUTH_SPINNER.classList.toggle('hidden', !show);
+  AUTH_TEXT.classList.toggle('hidden', show);
+}
+
+function toggleOverlay(show) {
+  OVERLAY.classList.toggle('hidden', !show);
+}
+
+/* --- LOGIN --- */
+LOGIN_FORM.addEventListener('submit', async e => {
+  e.preventDefault();
+  toggleLoadingButton(true);
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  try {
+    const res = await fetch(`${API_BASE_URL}/auth/login`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ username, password })
     });
+    const data = await res.json();
+    if(res.ok) {
+      TOKEN_DISPLAY.value = data.access_token || '';
+      TOKEN_SECTION.classList.remove('hidden');
+      localStorage.setItem('user_id', data.user_id);
+      displayMessage('Token generado. Copia y valida para continuar.','success');
+    } else displayMessage(data.msg || 'Credenciales inválidas','error');
+  } catch(err){ displayMessage('Error al conectar con la API','error'); }
+  toggleLoadingButton(false);
+});
 
-    // --- Copiar Token ---
-    document.getElementById('copy-token').addEventListener('click', ()=>{
-      const token = TOKEN_DISPLAY.value.trim();
-      if (!token) return displayMessage('No hay token','error');
-      navigator.clipboard.writeText(token);
-      displayMessage('Token copiado al portapapeles','success');
-    });
+/* --- Copiar Token --- */
+document.getElementById('copy-token').addEventListener('click', ()=>{
+  const token = TOKEN_DISPLAY.value.trim();
+  if (!token) return displayMessage('No hay token','error');
+  document.execCommand('copy');
+  displayMessage('Token copiado al portapapeles','success');
+});
 
-    // --- Validar Token ---
-    document.getElementById('validate-token').addEventListener('click', async ()=>{
-      const token = TOKEN_DISPLAY.value.trim();
-      if(!token) return displayMessage('No hay token','error');
-      try{
-        const res = await fetch(`${API_BASE_URL}/biciusuarios`, { headers:{'Authorization':`Bearer ${token}`} });
-        if(res.ok){
-          localStorage.setItem('access_token', token);
-          displayMessage('Token válido. Acceso permitido.','success');
-          renderState();
-        } else displayMessage('Token inválido o expirado','error');
-      }catch{ displayMessage('Error de conexión','error'); }
-    });
-
-    // --- ESTADO ---
-    function renderState() {
-      const token = localStorage.getItem('access_token');
-      const userId = localStorage.getItem('user_id');
-      if(token && userId){
-        AUTH_SECTION.classList.add('hidden');
-        DATA_CONTAINER.classList.remove('hidden');
-        fetchBiciusuarios();
-        fetchProfile(userId);
-      } else {
-        AUTH_SECTION.classList.remove('hidden');
-        DATA_CONTAINER.classList.add('hidden');
-      }
-    }
-
-    // --- FETCH LISTA ---
-    async function fetchBiciusuarios(refresh=false){
-      const token = localStorage.getItem('access_token');
-      if(!token) return;
-      BICIUSUARIOS_LIST.innerHTML = '<p class="text-center text-gray-500">Cargando...</p>';
-      try{
-        const res = await fetch(`${API_BASE_URL}/biciusuarios`,{headers:{'Authorization':`Bearer ${token}`}});
-        const data = await res.json();
-        if(res.ok && Array.isArray(data)) renderBiciusuarios(data);
-        else displayMessage(data.msg||'Error al cargar','error');
-      }catch{displayMessage('Error de red','error');}
-    }
-    function renderBiciusuarios(data){
-      BICIUSUARIOS_LIST.innerHTML = '';
-      if(!Array.isArray(data)||!data.length) return BICIUSUARIOS_LIST.innerHTML='<p>No hay biciusuarios</p>';
-      data.forEach(u=>{
-        const c=document.createElement('div');
-        c.className='bg-gray-100 p-4 rounded-md shadow-md';
-        c.innerHTML=`<p class="text-xs text-gray-500">ID ${u.id}</p>
-          <h3 class="font-bold text-gray-800">${u.nombre_biciusuario||'Sin nombre'}</h3>
-          <p class="text-sm text-gray-600">${u.username||''}</p>`;
-        BICIUSUARIOS_LIST.appendChild(c);
-      });
-    }
-
-    // --- PERFIL ---
-    async function fetchProfile(id){
-      const token=localStorage.getItem('access_token');
-      if(!token) return;
-      try{
-        const res=await fetch(`${API_BASE_URL}/biciusuarios/${id}`,{headers:{'Authorization':`Bearer ${token}`}});
-        const data=await res.json();
-        if(res.ok) renderProfileForm(data);
-        else displayMessage('Error al obtener perfil','error');
-      }catch{displayMessage('Error al cargar perfil','error');}
-    }
-    function renderProfileForm(u){
-      PROFILE_FORM_CONTAINER.innerHTML=`
-        <form id="profile-edit-form" class="space-y-4">
-          <div><label class="text-sm font-medium">Nombre</label>
-            <input id="edit-nombre" value="${u.nombre_biciusuario||''}" class="w-full border p-2 rounded"/></div>
-          <div class="flex justify-end space-x-3">
-            <button type="button" id="delete-btn" class="bg-red-500 text-white px-3 py-1 rounded">Eliminar</button>
-            <button type="submit" id="update-btn" class="bg-blue-600 text-white px-3 py-1 rounded">Guardar</button>
-          </div>
-        </form>`;
-      document.getElementById('profile-edit-form').addEventListener('submit',handleUpdateProfile);
-      document.getElementById('delete-btn').addEventListener('click',handleDeleteProfile);
-    }
-    async function handleUpdateProfile(e){
-      e.preventDefault();
-      const token=localStorage.getItem('access_token');
-      const id=localStorage.getItem('user_id');
-      const nombre=document.getElementById('edit-nombre').value;
-      try{
-        const res=await fetch(`${API_BASE_URL}/biciusuarios/${id}`,{
-          method:'PUT',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
-          body:JSON.stringify({nombre_biciusuario:nombre})
-        });
-        if(res.ok){displayMessage('Perfil actualizado','success');fetchProfile(id);}
-        else displayMessage('Error al actualizar','error');
-      }catch{displayMessage('Error de conexión','error');}
-    }
-    async function handleDeleteProfile(){
-      if(!confirm('¿Eliminar cuenta?'))return;
-      const token=localStorage.getItem('access_token');
-      const id=localStorage.getItem('user_id');
-      try{
-        const res=await fetch(`${API_BASE_URL}/biciusuarios/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${token}`}});
-        if(res.ok){displayMessage('Cuenta eliminada','success');logout();}
-        else displayMessage('Error al eliminar','error');
-      }catch{displayMessage('Error de red','error');}
-    }
-
-    // --- LOGOUT ---
-    function logout(){
-      localStorage.clear();
-      displayMessage('Sesión cerrada','info');
+/* --- Validar Token --- */
+document.getElementById('validate-token').addEventListener('click', async ()=>{
+  const token = TOKEN_DISPLAY.value.trim();
+  const userId = localStorage.getItem('user_id');
+  if(!token) return displayMessage('No hay token','error');
+  try{
+    toggleOverlay(true);
+    const res = await fetch(`${API_BASE_URL}/biciusuarios`, { headers:{'Authorization':`Bearer ${token}`} });
+    if(res.ok){
+      localStorage.setItem('access_token', token);
+      displayMessage('Token válido. Acceso permitido.','success');
       renderState();
+    } else displayMessage('Token inválido o expirado','error');
+  }catch{ displayMessage('Error de conexión','error'); }
+  toggleOverlay(false);
+});
+
+/* --- ESTADO --- */
+function renderState() {
+  const token = localStorage.getItem('access_token');
+  const userId = localStorage.getItem('user_id');
+  if(token && userId){
+    AUTH_SECTION.classList.add('hidden');
+    DATA_CONTAINER.classList.remove('hidden');
+    fetchBiciusuarios();
+    fetchProfile();
+  } else {
+    AUTH_SECTION.classList.remove('hidden');
+    DATA_CONTAINER.classList.add('hidden');
+    TOKEN_SECTION.classList.add('hidden');
+  }
+}
+
+/* --- Lista --- */
+async function fetchBiciusuarios(){
+  const token = localStorage.getItem('access_token');
+  if(!token) return;
+  BICIUSUARIOS_LIST.innerHTML = '<p class="text-center text-gray-500">Cargando...</p>';
+  try{
+    const res = await fetch(`${API_BASE_URL}/biciusuarios`,{headers:{'Authorization':`Bearer ${token}`}});
+    const data = await res.json();
+    if(res.ok && Array.isArray(data)) renderBiciusuarios(data);
+    else displayMessage(data.msg||'Error al cargar listado','error');
+  }catch{displayMessage('Error de red al cargar listado','error');}
+}
+
+function renderBiciusuarios(data){
+  BICIUSUARIOS_LIST.innerHTML = '';
+  if(!Array.isArray(data)||!data.length)
+    return BICIUSUARIOS_LIST.innerHTML='<p class="text-center text-gray-500">No hay biciusuarios registrados.</p>';
+  data.forEach(u=>{
+    const c=document.createElement('div');
+    c.className='bg-gray-100 p-4 rounded-md shadow-md hover:shadow-lg transition-shadow';
+    c.innerHTML=`<p class="text-xs text-gray-500">ID ${u.id}</p>
+    <h3 class="font-bold text-gray-800">${u.nombre_biciusuario||'Sin nombre'}</h3>
+    <p class="text-sm text-gray-600">${u.username||''}</p>`;
+    BICIUSUARIOS_LIST.appendChild(c);
+  });
+}
+
+/* --- Perfil --- */
+async function fetchProfile(id){
+  const token=localStorage.getItem('access_token');
+  if(!token) return;
+  PROFILE_FORM_CONTAINER.innerHTML = '<p class="text-gray-500 text-center py-8">Cargando datos...</p>';
+  try{
+    toggleOverlay(true);
+    const res = await fetch(`${API_BASE_URL}/biciusuarios/me`,{headers:{'Authorization':`Bearer ${token}`}});
+    const data=await res.json();
+    if(res.ok) renderProfileForm(data);
+    else displayMessage(data.error || data.msg || 'Error al obtener perfil.','error');
+  }catch{displayMessage('Error al cargar perfil','error');}
+  toggleOverlay(false);
+}
+
+function renderProfileForm(u){
+  PROFILE_FORM_CONTAINER.innerHTML=`
+    <form id="profile-edit-form" class="space-y-6">
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <label class="block text-sm font-medium text-gray-700">Usuario (No Editable)</label>
+        <input type="text" value="${u.username||''}" readonly
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-200 text-gray-600" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Nombre del Biciusuario</label>
+        <input id="edit-nombre" value="${u.nombre_biciusuario||''}"
+          class="mt-1 block w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-blue-500" />
+      </div>
+
+      <div class="flex justify-between items-center pt-4 border-t">
+        <div id="delete-controls" class="flex space-x-2">
+          <button type="button" id="delete-btn"
+            class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors shadow-md">
+            Eliminar Cuenta
+          </button>
+          <button type="button" id="confirm-delete-btn"
+            class="hidden bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800 transition-colors shadow-md animate-pulse">
+            CONFIRMAR ELIMINACIÓN
+          </button>
+        </div>
+
+        <button type="submit" id="update-btn"
+          class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-md">
+          Guardar Cambios
+        </button>
+      </div>
+    </form>
+  `;
+
+  document.getElementById('profile-edit-form').addEventListener('submit',handleUpdateProfile);
+
+  const deleteBtn = document.getElementById('delete-btn');
+  const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+
+  deleteBtn.addEventListener('click', () => {
+    deleteBtn.classList.add('hidden');
+    confirmDeleteBtn.classList.remove('hidden');
+    displayMessage('Presiona CONFIRMAR ELIMINACIÓN para borrar tu cuenta.','info');
+    setTimeout(() => {
+      if (!confirmDeleteBtn.classList.contains('hidden')) {
+        confirmDeleteBtn.classList.add('hidden');
+        deleteBtn.classList.remove('hidden');
+      }
+    }, 5000);
+  });
+
+  confirmDeleteBtn.addEventListener('click', handleDeleteProfile);
+}
+
+/* --- Actualizar perfil --- */
+async function handleUpdateProfile(e){
+  e.preventDefault();
+  const token=localStorage.getItem('access_token');
+  const id=localStorage.getItem('user_id');
+  const nombre=document.getElementById('edit-nombre').value;
+
+  try{
+    toggleOverlay(true);
+    const res=await fetch(`${API_BASE_URL}/biciusuarios/${id}`,{
+      method:'PUT',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+      body:JSON.stringify({nombre_biciusuario:nombre})
+    });
+
+    if(res.ok){
+      displayMessage('Perfil actualizado correctamente.','success');
+      fetchProfile(id);
+      fetchBiciusuarios();
     }
+    else {
+      const data = await res.json();
+      displayMessage(data.error || data.msg || 'Error al actualizar el perfil.','error');
+    }
+  }catch{displayMessage('Error de conexión','error');}
+  toggleOverlay(false);
+}
 
-    // --- Pestañas ---
-    document.querySelectorAll('.tab-button').forEach(btn=>btn.addEventListener('click',e=>{
-      const view=e.target.dataset.view;
-      document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('border-blue-600','text-blue-600'));
-      e.target.classList.add('border-blue-600','text-blue-600');
-      document.querySelectorAll('.view-content').forEach(v=>v.classList.add('hidden'));
-      document.getElementById(`view-${view}`).classList.remove('hidden');
-      if(view==='list')fetchBiciusuarios(); else fetchProfile(localStorage.getItem('user_id'));
-    }));
+/* --- Eliminar perfil --- */
+async function handleDeleteProfile(){
+  const token=localStorage.getItem('access_token');
+  const id=localStorage.getItem('user_id');
 
-    renderState();
-  </script>
+  try{
+    toggleOverlay(true);
+    const res=await fetch(`${API_BASE_URL}/biciusuarios/${id}`,{
+      method:'DELETE',headers:{'Authorization':`Bearer ${token}`}
+    });
+
+    if(res.ok){
+      displayMessage('Cuenta eliminada correctamente.','success');
+      setTimeout(logout, 1500);
+    }
+    else {
+      const data = await res.json();
+      displayMessage(data.error || data.msg || 'Error al eliminar la cuenta.','error');
+    }
+  }catch{displayMessage('Error de red','error');}
+  toggleOverlay(false);
+}
+
+/* --- LOGOUT --- */
+function logout(){
+  localStorage.clear();
+  displayMessage('Sesión cerrada','info');
+  renderState();
+}
+
+/* --- Pestañas --- */
+document.querySelectorAll('.tab-button').forEach(btn=>btn.addEventListener('click',e=>{
+  const view=e.target.dataset.view;
+  document.querySelectorAll('.tab-button').forEach(b=>{
+    b.classList.remove('border-blue-600','text-blue-600');
+    b.classList.add('border-transparent','text-gray-600');
+  });
+  e.target.classList.add('border-blue-600','text-blue-600');
+  e.target.classList.remove('border-transparent','text-gray-600');
+
+  document.querySelectorAll('.view-content').forEach(v=>v.classList.add('hidden'));
+  document.getElementById(`view-${view}`).classList.remove('hidden');
+
+  if (view === 'profile') fetchProfile();
+  else if(view==='list') fetchBiciusuarios();
+}));
+
+renderState();
+</script>
+
 </body>
 </html>
