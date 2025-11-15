@@ -35,6 +35,7 @@ body { font-family: 'Inter', sans-serif; }
 
   <!-- LOGIN -->
   <section id="auth-section" class="bg-white p-6 md:p-10 rounded-xl shadow-2xl mb-8 max-w-lg mx-auto">
+    <div id="login-form-container"></div>
     <h2 class="text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">Iniciar Sesión</h2>
     <form id="login-form" class="space-y-4">
       <div>
@@ -47,6 +48,7 @@ body { font-family: 'Inter', sans-serif; }
         <input type="password" id="password" value="pass123" required
           class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500" />
       </div>
+
       <button type="submit" id="auth-btn"
         class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md flex justify-center items-center">
         <span id="auth-text">Generar Token</span>
@@ -64,6 +66,12 @@ body { font-family: 'Inter', sans-serif; }
         <button id="validate-token" class="bg-green-500 text-white px-3 py-1 rounded-md hover:bg-green-600 text-sm">Validar Token</button>
       </div>
     </div>
+    <div>
+      <p class="text-center mt-3">
+   ¿No tienes cuenta?
+   <button onclick="switchToRegister()" class="text-blue-600 font-bold">Crear cuenta</button>
+    </p>
+  </div>
   </section>
 
   <!-- CRUD -->
@@ -116,6 +124,8 @@ const AUTH_SECTION = document.getElementById('auth-section');
 const PROFILE_FORM_CONTAINER = document.getElementById('profile-form-container');
 const BICIUSUARIOS_LIST = document.getElementById('biciusuarios-list');
 const OVERLAY = document.getElementById('loading-overlay');
+const LOGIN_FORM_CONTAINER = document.getElementById("login-form-container");
+
 
 /* --- UTILIDADES --- */
 function displayMessage(text, type='success') {
@@ -160,6 +170,98 @@ LOGIN_FORM.addEventListener('submit', async e => {
   toggleLoadingButton(false);
 });
 
+/* === REEMPLAZAR switchToRegister() y renderRegisterForm() === */
+
+function switchToRegister() {
+  // Oculta el login
+  LOGIN_FORM.classList.add("hidden");
+  TOKEN_SECTION.classList.add("hidden");
+
+  // Limpia el contenedor donde se renderiza el form de registro
+  LOGIN_FORM_CONTAINER.innerHTML = "";
+
+  // Renderizar formulario
+  renderRegisterForm();
+
+  setTimeout(() => {
+    try {
+      window.scrollTo({ top: AUTH_SECTION.offsetTop, behavior: "smooth" });
+    } catch (e) {}
+  }, 50);
+}
+
+function renderRegisterForm() {
+  LOGIN_FORM_CONTAINER.innerHTML = `
+    <div class="mb-4">
+      <h2 class="text-xl font-bold mb-2">Crear Cuenta</h2>
+      <p class="text-sm text-gray-500">Ingresa tus datos para registrarte.</p>
+    </div>
+
+    <form id="registerForm" class="space-y-3">
+      <input id="reg_username" placeholder="Nombre de usuario" class="w-full p-2 border rounded" required />
+      <input id="reg_password" placeholder="Contraseña" type="password" class="w-full p-2 border rounded" required />
+      <input id="reg_nombre_biciusuario" placeholder="Nombre de biciusuario" class="w-full p-2 border rounded" required />
+
+      <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded">Registrarme</button>
+
+      <button type="button" id="cancelRegister" class="w-full bg-gray-300 text-gray-700 p-2 rounded">Cancelar</button>
+    </form>
+  `;
+
+  // Evento submit del formulario
+  const form = document.getElementById("registerForm");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const username = document.getElementById("reg_username").value.trim();
+    const password = document.getElementById("reg_password").value.trim();
+    const nombre_biciusuario = document.getElementById("reg_nombre_biciusuario").value.trim();
+
+    if (!username || !password || !nombre_biciusuario) {
+      return displayMessage("Todos los campos son obligatorios.", "error");
+    }
+
+    try {
+      toggleOverlay(true);
+
+      const res = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username,
+          password,
+          nombre_biciusuario
+        })
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        displayMessage("Cuenta creada correctamente. Ahora inicia sesión.", "success");
+
+        // Restaurar login
+        LOGIN_FORM.classList.remove("hidden");
+        LOGIN_FORM_CONTAINER.innerHTML = "";
+
+        // Autocompletar username si quieres
+        try { document.getElementById("username").value = username; } catch (e) {}
+      } else {
+        displayMessage(data.error || data.msg || "Error al registrar usuario.", "error");
+      }
+    } catch (err) {
+      displayMessage("Error de conexión al registrar.", "error");
+    } finally {
+      toggleOverlay(false);
+    }
+  });
+
+  // cancelar vuelve a mostrar login
+  document.getElementById("cancelRegister").addEventListener("click", () => {
+    LOGIN_FORM.classList.remove("hidden");
+    LOGIN_FORM_CONTAINER.innerHTML = "";
+  });
+}
+
 /* --- Copiar Token --- */
 document.getElementById('copy-token').addEventListener('click', ()=>{
   const token = TOKEN_DISPLAY.value.trim();
@@ -189,13 +291,16 @@ document.getElementById('validate-token').addEventListener('click', async ()=>{
 function renderState() {
   const token = localStorage.getItem('access_token');
   const userId = localStorage.getItem('user_id');
+  // nota: CURRENT_VIEW no se usa en esta versión, sólo se mantiene compatibilidad
   if(token && userId){
     AUTH_SECTION.classList.add('hidden');
     DATA_CONTAINER.classList.remove('hidden');
+    LOGIN_FORM.classList.remove("hidden");
     fetchBiciusuarios();
     fetchProfile();
   } else {
     AUTH_SECTION.classList.remove('hidden');
+    LOGIN_FORM.classList.remove("hidden");
     DATA_CONTAINER.classList.add('hidden');
     TOKEN_SECTION.classList.add('hidden');
   }
@@ -243,67 +348,166 @@ async function fetchProfile(id){
   toggleOverlay(false);
 }
 
-function renderProfileForm(u){
-  PROFILE_FORM_CONTAINER.innerHTML=`
-    <form id="profile-edit-form" class="space-y-6">
-      <div class="bg-gray-50 p-4 rounded-lg">
-        <label class="block text-sm font-medium text-gray-700">Usuario (No Editable)</label>
-        <input type="text" value="${u.username||''}" readonly
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-200 text-gray-600" />
-      </div>
+function renderProfileForm(data) {
+  PROFILE_FORM_CONTAINER.innerHTML = `
+    <h2 class="text-xl font-bold mb-4">Mi Perfil</h2>
 
+    <form id="profileForm" class="space-y-4">
+      
+      <!-- Nombre -->
       <div>
-        <label class="block text-sm font-medium text-gray-700">Nombre del Biciusuario</label>
-        <input id="edit-nombre" value="${u.nombre_biciusuario||''}"
-          class="mt-1 block w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-blue-500" />
+        <label class="block text-sm font-medium">Nombre del Biciusuario</label>
+        <input id="nombre_biciusuario" value="${data.nombre_biciusuario || ''}" 
+          class="w-full p-2 border rounded" />
       </div>
 
-      <div class="flex justify-between items-center pt-4 border-t">
-        <div id="delete-controls" class="flex space-x-2">
-          <button type="button" id="delete-btn"
-            class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors shadow-md">
-            Eliminar Cuenta
-          </button>
-          <button type="button" id="confirm-delete-btn"
-            class="hidden bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800 transition-colors shadow-md animate-pulse">
-            CONFIRMAR ELIMINACIÓN
-          </button>
+      <!-- Bicicletas -->
+      <div>
+        <label class="block text-sm font-medium">Bicicletas</label>
+
+        <div id="bicicletasContainer">
+          ${data.bicicletas.map((bici, i) => `
+            <div class="p-3 border rounded mb-2">
+              <input class="w-full p-1 border rounded mb-1" placeholder="Marca" value="${bici.marca}">
+              <input class="w-full p-1 border rounded mb-1" placeholder="Modelo" value="${bici.modelo}">
+              <input class="w-full p-1 border rounded mb-1" placeholder="Color" value="${bici.color}">
+              <input class="w-full p-1 border rounded mb-1" placeholder="Serial" value="${bici.serial}">
+            </div>
+          `).join('')}
         </div>
 
-        <button type="submit" id="update-btn"
-          class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-md">
-          Guardar Cambios
+        <button type="button" id="addBike" class="bg-blue-500 text-white px-2 py-1 rounded mt-2">
+          Añadir bicicleta
         </button>
       </div>
+
+      <!-- Registros -->
+      <div>
+        <label class="block text-sm font-medium">Registros</label>
+
+        <div id="registrosContainer">
+          ${data.registros.map((reg) => `
+            <div class="p-3 border rounded mb-2">
+              <input class="w-full p-1 border rounded" placeholder="Serial bicicleta" value="${reg.serial}">
+            </div>
+          `).join('')}
+        </div>
+
+        <button type="button" id="addRegistro" class="bg-blue-500 text-white px-2 py-1 rounded mt-2">
+          Añadir registro
+        </button>
+
+      </div>
+
+      <!-- BOTONES -->
+      <div class="flex gap-3 pt-4">
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Guardar Cambios</button>
+        <button type="button" id="deleteProfile" class="bg-red-600 text-white px-4 py-2 rounded">
+          Eliminar Perfil
+        </button>
+      </div>
+
     </form>
   `;
 
-  document.getElementById('profile-edit-form').addEventListener('submit',handleUpdateProfile);
-
-  const deleteBtn = document.getElementById('delete-btn');
-  const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
-
-  deleteBtn.addEventListener('click', () => {
-    deleteBtn.classList.add('hidden');
-    confirmDeleteBtn.classList.remove('hidden');
-    displayMessage('Presiona CONFIRMAR ELIMINACIÓN para borrar tu cuenta.','info');
-    setTimeout(() => {
-      if (!confirmDeleteBtn.classList.contains('hidden')) {
-        confirmDeleteBtn.classList.add('hidden');
-        deleteBtn.classList.remove('hidden');
-      }
-    }, 5000);
-  });
-
-  confirmDeleteBtn.addEventListener('click', handleDeleteProfile);
+  attachProfileEvents(data.id_biciusuario);
 }
+
+function attachProfileEvents(userId) {
+
+  // Añadir bicicleta
+  document.getElementById("addBike").onclick = () => {
+    document.getElementById("bicicletasContainer").insertAdjacentHTML("beforeend", `
+      <div class="p-3 border rounded mb-2">
+        <input class="w-full p-1 border rounded mb-1" placeholder="Marca">
+        <input class="w-full p-1 border rounded mb-1" placeholder="Modelo">
+        <input class="w-full p-1 border rounded mb-1" placeholder="Color">
+        <input class="w-full p-1 border rounded mb-1" placeholder="Serial">
+      </div>
+    `);
+  };
+
+  // Añadir registro
+  document.getElementById("addRegistro").onclick = () => {
+    document.getElementById("registrosContainer").insertAdjacentHTML("beforeend", `
+      <div class="p-3 border rounded mb-2">
+        <input class="w-full p-1 border rounded" placeholder="Serial bicicleta">
+      </div>
+    `);
+  };
+
+  // Guardar datos
+  document.getElementById("profileForm").onsubmit = async (e) => {
+    e.preventDefault();
+
+    const token = localStorage.getItem("access_token");
+
+    const nombre = document.getElementById("nombre_biciusuario").value;
+
+    const bicicletas = [...document.querySelectorAll("#bicicletasContainer > div")].map(div => {
+      const inputs = div.querySelectorAll("input");
+      return {
+        marca: inputs[0].value,
+        modelo: inputs[1].value,
+        color: inputs[2].value,
+        serial: inputs[3].value
+      };
+    });
+
+    const registros = [...document.querySelectorAll("#registrosContainer > div")].map(div => {
+      const input = div.querySelector("input");
+      return { serial: input.value };
+    });
+
+    const res = await fetch(`${API_BASE_URL}/biciusuarios/${userId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        nombre_biciusuario: nombre,
+        bicicletas,
+        registros
+      })
+    });
+
+    const data = await res.json();
+    if (res.ok) displayMessage("Perfil actualizado correctamente", "success");
+    else displayMessage(data.msg || "Error al actualizar", "error");
+  };
+
+  // Eliminar perfil
+  document.getElementById("deleteProfile").onclick = async () => {
+    if (!confirm("¿Seguro que deseas eliminar tu perfil?")) return;
+
+    const token = localStorage.getItem("access_token");
+
+    const res = await fetch(`${API_BASE_URL}/biciusuarios/${userId}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (res.ok) {
+      displayMessage("Perfil eliminado", "success");
+      logout();
+    } else {
+      const data = await res.json();
+      displayMessage(data.msg || "Error al eliminar perfil", "error");
+    }
+  };
+
+}
+
 
 /* --- Actualizar perfil --- */
 async function handleUpdateProfile(e){
   e.preventDefault();
   const token=localStorage.getItem('access_token');
   const id=localStorage.getItem('user_id');
-  const nombre=document.getElementById('edit-nombre').value;
+  const nombre=document.getElementById('edit-nombre') ? document.getElementById('edit-nombre').value : '';
 
   try{
     toggleOverlay(true);
